@@ -50,18 +50,15 @@ cont_size=container_map.get(container_size, "")
 
 options = uc.ChromeOptions()
 
-options.binary_location = "/usr/bin/chromium"
-
 options.add_argument("--headless=new")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 options.add_argument("--disable-gpu")
-options.add_argument("--start-maximized")
-options.add_argument("--disable-blink-features=AutomationControlled")
 
 driver = uc.Chrome(
     options=options,
     browser_executable_path="/usr/bin/chromium",
+    driver_executable_path="/usr/bin/chromedriver",
     use_subprocess=True
 )
 

@@ -19,26 +19,25 @@ warnings.filterwarnings("ignore")
 
 # ================= DRIVER =================
 options = uc.ChromeOptions()
-options.add_argument("--start-maximized")
-options.add_argument("--disable-blink-features=AutomationControlled")
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-profile_path = os.path.join(BASE_DIR, "chrome", "hapag")
-options.add_argument(f"--user-data-dir={profile_path}")
 
+options.add_argument("--headless=new")
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--disable-gpu")
 
 driver = uc.Chrome(
     options=options,
-    version_main=148,
+    browser_executable_path="/usr/bin/chromium",
+    driver_executable_path="/usr/bin/chromedriver",
     use_subprocess=True
 )
-
-driver.maximize_window()
 
 wait = WebDriverWait(driver, 30)
 
 # ================= OPEN SITE =================
 
 driver.get("https://www.hapag-lloyd.com/en/home.html")
+driver.maximize_window()
 
 time.sleep(10)
 
