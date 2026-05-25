@@ -1,0 +1,1 @@
+web: gunicorn shipping_project.wsgi
