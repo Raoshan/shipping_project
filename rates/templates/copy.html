@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Run Scraper</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet">
+
+<style>
+
+body{
+    background:#f4f6f9;
+    font-family:Arial, sans-serif;
+}
+
+/* ================= NAVBAR ================= */
+
+.navbar{
+    padding:14px 0;
+    background:linear-gradient(90deg,#0f172a,#1e293b);
+}
+
+.navbar-brand{
+    font-size:24px;
+    letter-spacing:0.5px;
+}
+
+.nav-btn{
+    border-radius:10px;
+    padding:8px 18px;
+    font-weight:500;
+    transition:0.3s;
+}
+
+.nav-btn:hover{
+    transform:translateY(-2px);
+}
+
+/* ================= PAGE TITLE ================= */
+
+.page-title{
+    font-size:34px;
+    font-weight:700;
+    color:#0f172a;
+}
+
+/* ================= CARD ================= */
+
+.card{
+    border:none;
+    border-radius:18px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.08);
+}
+
+/* ================= FORM ================= */
+
+.form-section{
+    padding:18px;
+    background:#fff;
+    border-radius:14px;
+    border:1px solid #e5e7eb;
+    transition:0.3s;
+}
+
+.form-section:hover{
+    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+}
+
+.dropdown-menu{
+    max-height:220px;
+    overflow-y:auto;
+}
+
+.form-label{
+    font-weight:600;
+    margin-bottom:8px;
+    color:#111827;
+}
+
+.btn{
+    border-radius:10px;
+}
+
+.run-btn{
+    height:58px;
+    font-size:18px;
+    font-weight:600;
+    letter-spacing:0.5px;
+}
+
+/* ================= DROPDOWN ================= */
+
+.dropdown-item{
+    font-size:14px;
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:768px){
+
+    .page-title{
+        font-size:26px;
+    }
+
+    .nav-btn{
+        font-size:13px;
+        padding:7px 12px;
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow-sm">
+
+    <div class="container-fluid">
+
+        <a class="navbar-brand fw-bold"
+           href="/">
+
+           🚢 Shipping Panel
+
+        </a>
+
+        <div class="d-flex gap-2 flex-wrap">
+
+            <!-- HOME -->
+
+            <a href="/"
+               id="homeLink"
+               class="btn btn-success btn-sm nav-btn">
+
+               <i class="bi bi-house-door-fill"></i>
+               Home
+
+            </a>
+
+            <!-- RATES -->
+
+            <a href="/rates/"
+               id="ratesLink"
+               class="btn btn-info btn-sm text-white nav-btn">
+
+               <i class="bi bi-bar-chart-fill"></i>
+               Rates
+
+            </a>
+
+            <!-- TRACKER -->
+
+            <a href="/run-tracker/"
+               id="trackerLink"
+               class="btn btn-warning btn-sm text-dark nav-btn">
+
+               <i class="bi bi-activity"></i>
+               Tracker
+
+            </a>
+
+        </div>
+
+    </div>
+
+</nav>
+
+<!-- ================= PAGE ================= -->
+
+<div class="container mt-4 mb-5">
+
+    <div class="text-center mb-4">
+
+        <h2 class="page-title">
+
+            🚀 Run Shipping Scraper
+
+        </h2>
+
+        <p class="text-muted">
+
+            Run automated shipping scraping with dynamic ports & shipping lines
+
+        </p>
+
+    </div>
+
+    <div class="card p-4">
+
+        <form method="post"
+              action="/run-scraper/"
+              id="scraperForm">
+
+            {% csrf_token %}
+
+            <div id="rows">
+
+                <div class="row g-3 form-section mb-3">
+
+                    <!-- CONTAINER -->
+
+                    <div class="col-lg-2">
+
+                        <label class="form-label">
+
+                            Container
+
+                        </label>
+
+                        <div class="dropdown">
+
+                            <button class="btn btn-outline-dark w-100 dropdown-toggle container-btn"
+                                    type="button"
+                                    data-bs-toggle="dropdown">
+
+                                Select Container
+
+                            </button>
+
+                            <ul class="dropdown-menu w-100 p-2 container-menu"></ul>
+
+                        </div>
+
+                    </div>
+
+                    <!-- SHIPPING LINE -->
+
+                    <div class="col-lg-3">
+
+                        <label class="form-label">
+
+                            Shipping Line
+
+                        </label>
+
+                        <div class="dropdown">
+
+                            <button class="btn btn-outline-dark w-100 dropdown-toggle shipping-btn"
+                                    type="button"
+                                    data-bs-toggle="dropdown">
+
+                                Select Shipping Line
+
+                            </button>
+
+                            <ul class="dropdown-menu w-100 p-2 shipping-menu"></ul>
+
+                        </div>
+
+                    </div>
+
+                    <!-- ORIGIN -->
+
+                    <div class="col-lg-3">
+
+                        <label class="form-label">
+
+                            Origin
+
+                        </label>
+
+                        <select name="origin[]"
+                                class="form-select origin">
+
+                            <option value="">
+                                Select Origin
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <!-- DESTINATION -->
+
+                    <div class="col-lg-3">
+
+                        <label class="form-label">
+
+                            Destination
+
+                        </label>
+
+                        <select name="destination[]"
+                                class="form-select destination">
+
+                            <option value="">
+                                Select Destination
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <!-- REMOVE -->
+
+                    <div class="col-lg-1 d-flex align-items-end">
+
+                        <button type="button"
+                                class="btn btn-danger w-100"
+                                onclick="removeRow(this)">
+
+                            ❌
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ADD ROW -->
+
+            <div class="text-end mb-3">
+
+                <button type="button"
+                        onclick="addRow()"
+                        class="btn btn-secondary">
+
+                    ➕ Add Row
+
+                </button>
+
+            </div>
+
+            <!-- RUN BUTTON -->
+
+            <button type="submit"
+                    id="runBtn"
+                    class="btn btn-success w-100 run-btn">
+
+                ▶ Run Scraper
+
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+<!-- ================= SCRIPT ================= -->
+
+<script>
+
+/* ================= SCRAPER STATUS ================= */
+
+let scraperStarted = false;
+
+/* ================= FORMAT PORT ================= */
+
+function formatPort(p){
+
+    let parts = p.split("|");
+
+    return parts.length === 2 ? parts[1] : p;
+
+}
+
+/* ================= RESET PORTS ================= */
+
+function resetPorts(row){
+
+    row.querySelector(".origin").innerHTML =
+        '<option value="">Select Origin</option>';
+
+    row.querySelector(".destination").innerHTML =
+        '<option value="">Select Destination</option>';
+}
+
+/* ================= UPDATE PORTS ================= */
+
+function updateOriginDestination(row){
+
+    let origin = row.querySelector(".origin");
+
+    let destination = row.querySelector(".destination");
+
+    let selectedOrigin = origin.value;
+
+    let selectedDestination = destination.value;
+
+    let ports = JSON.parse(row.dataset.allPorts || "[]");
+
+    origin.innerHTML =
+        '<option value="">Select Origin</option>';
+
+    destination.innerHTML =
+        '<option value="">Select Destination</option>';
+
+    ports.forEach(p => {
+
+        if(p !== selectedDestination){
+
+            let opt1 = new Option(formatPort(p), p);
+
+            if(p === selectedOrigin){
+                opt1.selected = true;
+            }
+
+            origin.add(opt1);
+        }
+
+        if(p !== selectedOrigin){
+
+            let opt2 = new Option(formatPort(p), p);
+
+            if(p === selectedDestination){
+                opt2.selected = true;
+            }
+
+            destination.add(opt2);
+        }
+
+    });
+
+}
+
+/* ================= FETCH PORTS ================= */
+
+function fetchPorts(row, container, lines){
+
+    if(!container || lines.length === 0){
+
+        resetPorts(row);
+
+        return;
+    }
+
+    let params = new URLSearchParams();
+
+    params.append("container", container);
+
+    lines.forEach(l => params.append("shipping_line", l));
+
+    fetch("/get-ports/?" + params.toString())
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        row.dataset.allPorts =
+            JSON.stringify(data.origins || []);
+
+        let origin = row.querySelector(".origin");
+
+        let dest = row.querySelector(".destination");
+
+        origin.innerHTML =
+            '<option value="">Select Origin</option>';
+
+        dest.innerHTML =
+            '<option value="">Select Destination</option>';
+
+        data.origins.forEach(p => {
+
+            origin.add(new Option(formatPort(p), p));
+
+            dest.add(new Option(formatPort(p), p));
+
+        });
+
+    });
+
+}
+
+/* ================= ADD ROW ================= */
+
+function addRow(){
+
+    let container = document.getElementById("rows");
+
+    let row =
+        container.querySelector(".form-section").cloneNode(true);
+
+    row.querySelectorAll("input")
+       .forEach(i => i.checked = false);
+
+    row.querySelector(".container-btn").innerText =
+        "Select Container";
+
+    row.querySelector(".shipping-btn").innerText =
+        "Select Shipping Line";
+
+    row.querySelector(".container-menu").innerHTML = "";
+
+    row.querySelector(".shipping-menu").innerHTML = "";
+
+    resetPorts(row);
+
+    container.appendChild(row);
+
+    loadContainers(row);
+
+}
+
+/* ================= REMOVE ROW ================= */
+
+function removeRow(btn){
+
+    if(document.querySelectorAll(".form-section").length > 1){
+
+        btn.closest(".form-section").remove();
+
+    }
+
+}
+
+/* ================= LOAD CONTAINERS ================= */
+
+function loadContainers(row){
+
+    fetch("/get-ports/")
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        let menu = row.querySelector(".container-menu");
+
+        menu.innerHTML = "";
+
+        data.containers.forEach(c => {
+
+            menu.innerHTML += `
+
+            <li>
+
+                <label class="dropdown-item">
+
+                    <input type="checkbox"
+                           class="container-checkbox"
+                           name="container[]"
+                           value="${c}">
+
+                    ${c}
+
+                </label>
+
+            </li>`;
+
+        });
+
+    });
+
+}
+
+document.querySelectorAll(".form-section")
+        .forEach(loadContainers);
+
+/* ================= CHANGE EVENTS ================= */
+
+document.addEventListener("change", function(e){
+
+/* ================= CONTAINER ================= */
+
+if(e.target.classList.contains("container-checkbox")){
+
+    let row = e.target.closest(".form-section");
+
+    row.querySelectorAll(".container-checkbox")
+       .forEach(cb => {
+
+        if(cb !== e.target){
+
+            cb.checked = false;
+
+        }
+
+    });
+
+    if(!e.target.checked){
+
+        resetPorts(row);
+
+        return;
+
+    }
+
+    let container = e.target.value;
+
+    row.querySelector(".container-btn").innerText =
+        container;
+
+    fetch(`/get-ports/?container=${container}`)
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        let menu = row.querySelector(".shipping-menu");
+
+        menu.innerHTML = `
+
+        <li>
+
+            <label class="dropdown-item fw-bold">
+
+                <input type="checkbox"
+                       class="select-all-shipping">
+
+                Select All
+
+            </label>
+
+        </li>
+
+        <li><hr></li>`;
+
+        data.shipping_lines.forEach(line => {
+
+            menu.innerHTML += `
+
+            <li>
+
+                <label class="dropdown-item">
+
+                    <input type="checkbox"
+                           class="shipping-line"
+                           name="shipping_line[]"
+                           value="${line}">
+
+                    ${line}
+
+                </label>
+
+            </li>`;
+
+        });
+
+    });
+
+}
+
+/* ================= SELECT ALL ================= */
+
+if(e.target.classList.contains("select-all-shipping")){
+
+    let row = e.target.closest(".form-section");
+
+    let allChecked = e.target.checked;
+
+    let checkboxes =
+        row.querySelectorAll(".shipping-line");
+
+    checkboxes.forEach(cb => {
+
+        cb.checked = allChecked;
+
+    });
+
+    let lines =
+        Array.from(checkboxes).map(cb => cb.value);
+
+    let container =
+        row.querySelector(".container-checkbox:checked")?.value;
+
+    row.querySelector(".shipping-btn").innerText =
+        allChecked ? "All Shipping Lines"
+                   : "Select Shipping Line";
+
+    if(allChecked){
+
+        fetchPorts(row, container, lines);
+
+    }else{
+
+        resetPorts(row);
+
+    }
+
+}
+
+/* ================= SHIPPING ================= */
+
+if(e.target.classList.contains("shipping-line")){
+
+    let row = e.target.closest(".form-section");
+
+    let checked =
+        row.querySelectorAll(".shipping-line:checked");
+
+    let lines =
+        Array.from(checked).map(cb => cb.value);
+
+    row.querySelector(".shipping-btn").innerText =
+        lines.length
+        ? lines.join(", ")
+        : "Select Shipping Line";
+
+    let container =
+        row.querySelector(".container-checkbox:checked")?.value;
+
+    fetchPorts(row, container, lines);
+
+}
+
+/* ================= ORIGIN ================= */
+
+if(e.target.classList.contains("origin")){
+
+    let row = e.target.closest(".form-section");
+
+    updateOriginDestination(row);
+
+}
+
+/* ================= DESTINATION ================= */
+
+if(e.target.classList.contains("destination")){
+
+    let row = e.target.closest(".form-section");
+
+    updateOriginDestination(row);
+
+}
+
+});
+
+/* ================= RUN SCRAPER ================= */
+
+document.getElementById("scraperForm")
+.addEventListener("submit", function(){
+
+    scraperStarted = true;
+
+    document.getElementById("homeLink")
+    .setAttribute("target", "_blank");
+
+    document.getElementById("ratesLink")
+    .setAttribute("target", "_blank");
+
+    document.getElementById("trackerLink")
+    .setAttribute("target", "_blank");
+
+});
+
+</script>
+
+<!-- ================= BOOTSTRAP ================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

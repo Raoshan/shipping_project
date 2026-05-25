@@ -45,22 +45,12 @@ container_size = sys.argv[5]
 print("Received arguments:", origin_port_code, origin_port_name, destination_port_code, destination_port_name, container_size)
 print("Final Container Value:", container_map.get(container_size, ""))
 cont_size=container_map.get(container_size, "")
-import undetected_chromedriver as uc
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-import time
 
 # ========= CHROME SETUP =========
 options = uc.ChromeOptions()
 options.add_argument("--start-maximized")
 options.add_argument("--disable-blink-features=AutomationControlled")
-driver = uc.Chrome(
-    options=options,
-    version_main=148,
-    use_subprocess=True
-)
-
+driver = uc.Chrome(options=options, version_main=148, use_subprocess=True)
 wait = WebDriverWait(driver, 20)
 
 # ================= OPEN WEBSITE =================
@@ -172,7 +162,7 @@ try:
 
         data.append([
             today,
-            "CMA CGM",
+            "CMACGM",
             origin_port_name,
             destination_port_name,
             cont_size,
@@ -292,7 +282,7 @@ try:
 
         data.append([
             today,
-            "CMA CGM",
+            "CMACGM",
             origin_port_name,
             destination_port_name,
             cont_size,

@@ -1,141 +1,447 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Run Scraper</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
 <style>
-body { background: #f4f6f9; }
 
-.card {
-    border-radius: 14px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+body{
+    background:#f4f6f9;
+    font-family:Arial,sans-serif;
 }
 
-.form-section {
-    padding: 15px;
-    background: #fff;
-    border-radius: 10px;
+/* ================= NAVBAR ================= */
+
+.navbar{
+    padding:14px 0;
+    background:linear-gradient(90deg,#0f172a,#1e293b);
 }
 
-.dropdown-menu {
-    max-height: 220px;
-    overflow-y: auto;
+.navbar-brand{
+    font-size:24px;
+    letter-spacing:0.5px;
 }
+
+.nav-btn{
+    border-radius:10px;
+    padding:8px 18px;
+    font-weight:500;
+    transition:0.3s;
+}
+
+.nav-btn:hover{
+    transform:translateY(-2px);
+}
+
+/* ================= TITLE ================= */
+
+.page-title{
+    font-size:34px;
+    font-weight:700;
+    color:#0f172a;
+}
+
+/* ================= CARD ================= */
+
+.main-card{
+    border:none;
+    border-radius:20px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.08);
+    background:#fff;
+}
+
+.form-section{
+    padding:18px;
+    background:#fff;
+    border-radius:14px;
+    border:1px solid #e5e7eb;
+}
+
+.form-section:hover{
+    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+}
+
+.dropdown-menu{
+    max-height:250px;
+    overflow-y:auto;
+}
+
+.form-label{
+    font-weight:600;
+    margin-bottom:8px;
+    color:#111827;
+}
+
+.btn{
+    border-radius:10px;
+}
+
+.run-btn{
+    height:55px;
+    font-size:18px;
+    font-weight:600;
+}
+
+.stop-btn{
+    height:55px;
+    font-size:17px;
+    font-weight:600;
+}
+
+.dropdown-item{
+    font-size:14px;
+}
+
+.card-title{
+    font-size:22px;
+    font-weight:700;
+}
+
+@media(max-width:991px){
+
+    .page-title{
+        font-size:28px;
+    }
+
+}
+
 </style>
+
 </head>
 
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
+<!-- ================= NAVBAR ================= -->
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow-sm">
+
     <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="/">🚢 Shipping Panel</a>
-        <div class="d-flex gap-2">
-            <a href="/" target="_blank" class="btn btn-success btn-sm">🏠 Home</a>
-            <a href="/import/" target="_blank" class="btn btn-primary btn-sm">⬆ Import</a>
-            <a href="/rates/" target="_blank" class="btn btn-info btn-sm text-white">📊 Rates</a>
-            <a href="/run-tracker/" target="_blank" class="btn btn-info btn-sm text-dark">📡 Tracker</a>
+
+        <a class="navbar-brand fw-bold" href="/">
+            🚢 Shipping Panel
+        </a>
+
+        <div class="d-flex gap-2 flex-wrap">
+
+            <a href="/"
+               id="homeLink"
+               class="btn btn-success btn-sm nav-btn">
+
+               <i class="bi bi-house-door-fill"></i>
+               Home
+
+            </a>
+
+            <a href="/rates/"
+               id="ratesLink"
+               class="btn btn-info btn-sm text-white nav-btn">
+
+               <i class="bi bi-bar-chart-fill"></i>
+               Rates
+
+            </a>
+
+            <a href="/run-tracker/"
+               id="trackerLink"
+               class="btn btn-warning btn-sm text-dark nav-btn">
+
+               <i class="bi bi-activity"></i>
+               Tracker
+
+            </a>
+
         </div>
+
     </div>
+
 </nav>
 
-<div class="container mt-4">
-<h3 class="text-center mb-4">🚀 Run Scraper</h3>
+<!-- ================= PAGE ================= -->
 
-<div class="card p-4">
+<div class="container-fluid mt-4 mb-5 px-lg-4">
 
-<form method="post" action="/run-scraper/">
-{% csrf_token %}
+    <div class="row g-4">
 
-<div id="rows">
-<div class="row g-3 form-section mb-3">
+        <!-- ================= RUN SCRAPER ================= -->
 
-<!-- CONTAINER -->
-<div class="col-lg-2">
-<label class="form-label">Container</label>
-<div class="dropdown">
-<button class="btn btn-outline-dark w-100 dropdown-toggle container-btn"
-        data-bs-toggle="dropdown">Select Container</button>
-<ul class="dropdown-menu w-100 p-2 container-menu"></ul>
+        <div class="col-lg-8">
+
+            <div class="main-card p-4 h-100">
+
+                <h4 class="card-title mb-4 text-success">
+                    ▶ Run Scraper
+                </h4>
+
+                <form method="post"
+                      action="/run-scraper/"
+                      id="scraperForm">
+
+                    {% csrf_token %}
+
+                    <div id="rows">
+
+                        <div class="row g-3 form-section mb-3">
+
+                            <!-- CONTAINER -->
+
+                            <div class="col-lg-2">
+
+                                <label class="form-label">
+                                    Container
+                                </label>
+
+                                <div class="dropdown">
+
+                                    <button class="btn btn-outline-dark w-100 dropdown-toggle container-btn"
+                                            type="button"
+                                            data-bs-toggle="dropdown">
+
+                                        Select Container
+
+                                    </button>
+
+                                    <ul class="dropdown-menu w-100 p-2 container-menu"></ul>
+
+                                </div>
+
+                            </div>
+
+                            <!-- SHIPPING LINE -->
+
+                            <div class="col-lg-3">
+
+                                <label class="form-label">
+                                    Shipping Line
+                                </label>
+
+                                <div class="dropdown">
+
+                                    <button class="btn btn-outline-dark w-100 dropdown-toggle shipping-btn"
+                                            type="button"
+                                            data-bs-toggle="dropdown">
+
+                                        Select Shipping Line
+
+                                    </button>
+
+                                    <ul class="dropdown-menu w-100 p-2 shipping-menu"></ul>
+
+                                </div>
+
+                            </div>
+
+                            <!-- ORIGIN -->
+
+                            <div class="col-lg-3">
+
+                                <label class="form-label">
+                                    Origin
+                                </label>
+
+                                <select name="origin[]"
+                                        class="form-select origin">
+
+                                    <option value="">
+                                        Select Origin
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                            <!-- DESTINATION -->
+
+                            <div class="col-lg-3">
+
+                                <label class="form-label">
+                                    Destination
+                                </label>
+
+                                <select name="destination[]"
+                                        class="form-select destination">
+
+                                    <option value="">
+                                        Select Destination
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                            <!-- REMOVE -->
+
+                            <div class="col-lg-1 d-flex align-items-end">
+
+                                <button type="button"
+                                        class="btn btn-danger w-100"
+                                        onclick="removeRow(this)">
+
+                                    ❌
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- ADD ROW -->
+
+                    <div class="text-end mb-3">
+
+                        <button type="button"
+                                onclick="addRow()"
+                                class="btn btn-secondary">
+
+                            ➕ Add Row
+
+                        </button>
+
+                    </div>
+
+                    <!-- RUN BUTTON -->
+
+                    <button type="submit"
+                            id="runBtn"
+                            class="btn btn-success w-100 run-btn">
+
+                        ▶ Run Scraper
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+        <!-- ================= STOP SCRAPER ================= -->
+
+        <div class="col-lg-4">
+
+            <div class="main-card p-4 h-100">
+
+                <h4 class="card-title mb-4 text-danger">
+                    ⛔ Running Scrapers
+                </h4>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Current Running Shipping Lines
+                    </label>
+
+                    <div id="runningScraperBox"
+                         class="border rounded p-3 bg-light"
+                         style="min-height:220px;
+                                max-height:350px;
+                                overflow-y:auto;">
+
+                        <div class="text-muted text-center py-3">
+
+                            No Running Scraper
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- STOP SELECTED -->
+
+                <button type="button"
+                        id="stopSelectedBtn"
+                        class="btn btn-warning w-100 stop-btn mb-3">
+
+                    🛑 Stop Selected
+
+                </button>
+
+                <!-- STOP ALL -->
+
+                <button type="button"
+                        id="stopAllBtn"
+                        class="btn btn-danger w-100 stop-btn">
+
+                    ⛔ Stop All Scrapers
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
-</div>
 
-<!-- SHIPPING LINE -->
-<div class="col-lg-3">
-<label class="form-label">Shipping Line</label>
-<div class="dropdown">
-<button class="btn btn-outline-dark w-100 dropdown-toggle shipping-btn"
-        data-bs-toggle="dropdown">Select Shipping Line</button>
-<ul class="dropdown-menu w-100 p-2 shipping-menu"></ul>
-</div>
-</div>
+<!-- ================= BOOTSTRAP ================= -->
 
-<!-- ORIGIN -->
-<div class="col-lg-3">
-<label class="form-label">Origin</label>
-<select name="origin[]" class="form-select origin">
-<option value="">Select Origin</option>
-</select>
-</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- DESTINATION -->
-<div class="col-lg-3">
-<label class="form-label">Destination</label>
-<select name="destination[]" class="form-select destination">
-<option value="">Select Destination</option>
-</select>
-</div>
-
-<!-- REMOVE -->
-<div class="col-lg-1 d-flex align-items-end">
-<button type="button" class="btn btn-danger w-100" onclick="removeRow(this)">❌</button>
-</div>
-
-</div>
-</div>
-
-<div class="text-end mb-3">
-<button type="button" onclick="addRow()" class="btn btn-secondary">➕ Add Row</button>
-</div>
-
-<button type="submit" class="btn btn-success w-100">▶ Run Scraper</button>
-
-</form>
-</div>
-
-</div>
+<!-- ================= MAIN SCRIPT ================= -->
 
 <script>
 
-function formatPort(p) {
+/* ================= SCRAPER STATUS ================= */
+
+let scraperStarted = false;
+
+/* ================= FORMAT PORT ================= */
+
+function formatPort(p){
+
     let parts = p.split("|");
+
     return parts.length === 2 ? parts[1] : p;
+
 }
 
+/* ================= RESET PORTS ================= */
+
 function resetPorts(row){
-    row.querySelector(".origin").innerHTML = '<option value="">Select Origin</option>';
-    row.querySelector(".destination").innerHTML = '<option value="">Select Destination</option>';
+
+    row.querySelector(".origin").innerHTML =
+        '<option value="">Select Origin</option>';
+
+    row.querySelector(".destination").innerHTML =
+        '<option value="">Select Destination</option>';
+
 }
+
+/* ================= UPDATE PORTS ================= */
 
 function updateOriginDestination(row){
 
     let origin = row.querySelector(".origin");
+
     let destination = row.querySelector(".destination");
 
     let selectedOrigin = origin.value;
+
     let selectedDestination = destination.value;
 
     let ports = JSON.parse(row.dataset.allPorts || "[]");
 
-    origin.innerHTML = '<option value="">Select Origin</option>';
-    destination.innerHTML = '<option value="">Select Destination</option>';
+    origin.innerHTML =
+        '<option value="">Select Origin</option>';
+
+    destination.innerHTML =
+        '<option value="">Select Destination</option>';
 
     ports.forEach(p => {
 
-        // ORIGIN
         if(p !== selectedDestination){
+
             let opt1 = new Option(formatPort(p), p);
 
             if(p === selectedOrigin){
@@ -143,10 +449,11 @@ function updateOriginDestination(row){
             }
 
             origin.add(opt1);
+
         }
 
-        // DESTINATION
         if(p !== selectedOrigin){
+
             let opt2 = new Option(formatPort(p), p);
 
             if(p === selectedDestination){
@@ -154,187 +461,663 @@ function updateOriginDestination(row){
             }
 
             destination.add(opt2);
+
         }
+
     });
+
 }
 
+/* ================= FETCH PORTS ================= */
+
 function fetchPorts(row, container, lines){
+
     if(!container || lines.length === 0){
+
         resetPorts(row);
+
         return;
+
     }
 
     let params = new URLSearchParams();
+
     params.append("container", container);
-    lines.forEach(l=>params.append("shipping_line", l));
 
-    fetch("/get-ports/?"+params.toString())
-    .then(res=>res.json())
-    .then(data=>{
+    lines.forEach(l =>
+        params.append("shipping_line", l)
+    );
 
-        row.dataset.allPorts = JSON.stringify(data.origins || []);
+    fetch("/get-ports/?" + params.toString())
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        row.dataset.allPorts =
+            JSON.stringify(data.origins || []);
 
         let origin = row.querySelector(".origin");
+
         let dest = row.querySelector(".destination");
 
-        origin.innerHTML = '<option value="">Select Origin</option>';
-        dest.innerHTML = '<option value="">Select Destination</option>';
+        origin.innerHTML =
+            '<option value="">Select Origin</option>';
 
-        data.origins.forEach(p=>{
+        dest.innerHTML =
+            '<option value="">Select Destination</option>';
+
+        data.origins.forEach(p => {
+
             origin.add(new Option(formatPort(p), p));
+
             dest.add(new Option(formatPort(p), p));
+
         });
+
     });
+
 }
 
+/* ================= ADD ROW ================= */
+
 function addRow(){
-    let container = document.getElementById("rows");
-    let row = container.querySelector(".form-section").cloneNode(true);
 
-    row.querySelectorAll("input").forEach(i=>i.checked=false);
+    let container =
+        document.getElementById("rows");
 
-    row.querySelector(".container-btn").innerText="Select Container";
-    row.querySelector(".shipping-btn").innerText="Select Shipping Line";
-    row.querySelector(".container-menu").innerHTML="";
-    row.querySelector(".shipping-menu").innerHTML="";
+    let row =
+        container.querySelector(".form-section")
+        .cloneNode(true);
+
+    row.querySelectorAll("input")
+       .forEach(i => i.checked = false);
+
+    row.querySelector(".container-btn").innerText =
+        "Select Container";
+
+    row.querySelector(".shipping-btn").innerText =
+        "Select Shipping Line";
+
+    row.querySelector(".container-menu").innerHTML = "";
+
+    row.querySelector(".shipping-menu").innerHTML = "";
 
     resetPorts(row);
 
     container.appendChild(row);
+
     loadContainers(row);
+
 }
+
+/* ================= REMOVE ROW ================= */
 
 function removeRow(btn){
+
     if(document.querySelectorAll(".form-section").length > 1){
+
         btn.closest(".form-section").remove();
+
     }
+
 }
 
-function loadContainers(row){
-    fetch("/get-ports/")
-    .then(res=>res.json())
-    .then(data=>{
-        let menu = row.querySelector(".container-menu");
-        menu.innerHTML="";
+/* ================= LOAD CONTAINERS ================= */
 
-        data.containers.forEach(c=>{
+function loadContainers(row){
+
+    fetch("/get-ports/")
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        let menu =
+            row.querySelector(".container-menu");
+
+        menu.innerHTML = "";
+
+        data.containers.forEach(c => {
+
             menu.innerHTML += `
+
             <li>
+
                 <label class="dropdown-item">
+
                     <input type="checkbox"
                            class="container-checkbox"
                            name="container[]"
                            value="${c}">
+
                     ${c}
+
                 </label>
+
             </li>`;
+
         });
+
     });
+
 }
 
-document.querySelectorAll(".form-section").forEach(loadContainers);
+document.querySelectorAll(".form-section")
+        .forEach(loadContainers);
+
+/* ================= LOAD RUNNING SCRAPERS ================= */
+
+function loadRunningScrapers(){
+
+    fetch("/get-running-scrapers/")
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        let container =
+            document.getElementById("runningScraperBox");
+
+        if(!container) return;
+
+        container.innerHTML = "";
+
+        let current =
+            data.current_running;
+
+        let pending =
+            data.pending_scrapers || [];
+
+        let completed =
+            data.completed_scrapers || [];
+
+        /* ================= NOTHING ================= */
+
+        if(
+            !current
+            &&
+            pending.length === 0
+            &&
+            completed.length === 0
+        ){
+
+            container.innerHTML = `
+
+            <div class="text-muted text-center py-3">
+
+                No Running Scraper
+
+            </div>`;
+
+            return;
+        }
+
+        /* ================= SELECT ALL ================= */
+
+        container.innerHTML += `
+
+        <div class="form-check border rounded p-2 mb-3 bg-light">
+
+            <input class="form-check-input"
+                   type="checkbox"
+                   id="selectAllRunning">
+
+            <label class="form-check-label fw-bold ms-2"
+                   for="selectAllRunning">
+
+                Select All Scrapers
+
+            </label>
+
+        </div>`;
+
+        /* ================= CURRENT RUNNING ================= */
+
+        if(current){
+
+            container.innerHTML += `
+
+            <div class="border rounded p-3 mb-3 bg-success-subtle">
+
+                <div class="fw-bold text-success mb-2 d-flex align-items-center gap-2">
+
+                    <div class="spinner-border spinner-border-sm text-success"
+                         role="status">
+                    </div>
+
+                    CURRENT RUNNING
+
+                </div>
+
+                <div class="form-check">
+
+                    <input class="form-check-input stop-line"
+                           type="checkbox"
+                           value="${current}"
+                           id="current_${current}">
+
+                    <label class="form-check-label fw-bold ms-2"
+                           for="current_${current}">
+
+                        🟢 ${current}
+
+                    </label>
+
+                </div>
+
+            </div>`;
+        }
+
+        /* ================= PENDING ================= */
+
+        if(pending.length > 0){
+
+            container.innerHTML += `
+
+            <div class="border rounded p-3 mb-3 bg-warning-subtle">
+
+                <div class="fw-bold text-warning mb-3">
+
+                    🕒 IN QUEUE
+
+                </div>`;
+
+            pending.forEach(line => {
+
+                container.innerHTML += `
+
+                <div class="form-check mb-2">
+
+                    <input class="form-check-input stop-line"
+                           type="checkbox"
+                           value="${line}"
+                           id="queue_${line}">
+
+                    <label class="form-check-label ms-2"
+                           for="queue_${line}">
+
+                        🟡 ${line}
+
+                    </label>
+
+                </div>`;
+
+            });
+
+            container.innerHTML += `</div>`;
+        }
+
+        /* ================= COMPLETED ================= */
+
+        if(completed.length > 0){
+
+            container.innerHTML += `
+
+            <div class="border rounded p-3 mt-3 bg-info-subtle">
+
+                <div class="fw-bold text-info mb-3">
+
+                    ✅ COMPLETED
+
+                </div>`;
+
+            completed.forEach(line => {
+
+                container.innerHTML += `
+
+                <div class="mb-2 fw-semibold">
+
+                    ✅ ${line}
+
+                </div>`;
+            });
+
+            container.innerHTML += `</div>`;
+        }
+
+    })
+
+    .catch(err => {
+
+        console.log("Running Scraper Error:", err);
+
+    });
+
+}
+
+/* ================= AUTO REFRESH ================= */
+
+setInterval(loadRunningScrapers, 2000);
+
+loadRunningScrapers();
+
+/* ================= CHANGE EVENTS ================= */
 
 document.addEventListener("change", function(e){
 
-// CONTAINER
+/* ================= CONTAINER ================= */
+
 if(e.target.classList.contains("container-checkbox")){
+
     let row = e.target.closest(".form-section");
 
-    row.querySelectorAll(".container-checkbox").forEach(cb=>{
-        if(cb!==e.target) cb.checked=false;
+    row.querySelectorAll(".container-checkbox")
+       .forEach(cb => {
+
+        if(cb !== e.target){
+
+            cb.checked = false;
+
+        }
+
     });
 
     if(!e.target.checked){
+
         resetPorts(row);
+
         return;
+
     }
 
     let container = e.target.value;
-    row.querySelector(".container-btn").innerText = container;
+
+    row.querySelector(".container-btn").innerText =
+        container;
 
     fetch(`/get-ports/?container=${container}`)
-    .then(res=>res.json())
-    .then(data=>{
-        let menu = row.querySelector(".shipping-menu");
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        let menu =
+            row.querySelector(".shipping-menu");
 
         menu.innerHTML = `
-        <li>
-            <label class="dropdown-item fw-bold">
-                <input type="checkbox" class="select-all-shipping"> Select All
-            </label>
-        </li><li><hr></li>`;
 
-        data.shipping_lines.forEach(line=>{
+        <li>
+
+            <label class="dropdown-item fw-bold">
+
+                <input type="checkbox"
+                       class="select-all-shipping">
+
+                Select All
+
+            </label>
+
+        </li>
+
+        <li><hr></li>`;
+
+        data.shipping_lines.forEach(line => {
+
             menu.innerHTML += `
+
             <li>
+
                 <label class="dropdown-item">
+
                     <input type="checkbox"
                            class="shipping-line"
                            name="shipping_line[]"
                            value="${line}">
+
                     ${line}
+
                 </label>
+
             </li>`;
+
         });
+
     });
+
 }
 
-// SELECT ALL
+/* ================= SELECT ALL SHIPPING ================= */
+
 if(e.target.classList.contains("select-all-shipping")){
+
     let row = e.target.closest(".form-section");
+
     let allChecked = e.target.checked;
 
-    let checkboxes = row.querySelectorAll(".shipping-line");
+    let checkboxes =
+        row.querySelectorAll(".shipping-line");
 
-    checkboxes.forEach(cb=>{
+    checkboxes.forEach(cb => {
+
         cb.checked = allChecked;
+
     });
 
-    let lines = Array.from(checkboxes).map(cb=>cb.value);
-    let container = row.querySelector(".container-checkbox:checked")?.value;
+    let lines =
+        Array.from(checkboxes).map(cb => cb.value);
+
+    let container =
+        row.querySelector(".container-checkbox:checked")?.value;
 
     row.querySelector(".shipping-btn").innerText =
-        allChecked ? "All Shipping Lines" : "Select Shipping Line";
+        allChecked
+        ? "All Shipping Lines"
+        : "Select Shipping Line";
 
     if(allChecked){
+
         fetchPorts(row, container, lines);
-    } else {
+
+    }else{
+
         resetPorts(row);
+
     }
+
 }
 
-// SHIPPING
+/* ================= SHIPPING LINE ================= */
+
 if(e.target.classList.contains("shipping-line")){
+
     let row = e.target.closest(".form-section");
 
-    let checked = row.querySelectorAll(".shipping-line:checked");
-    let lines = Array.from(checked).map(cb=>cb.value);
+    let checked =
+        row.querySelectorAll(".shipping-line:checked");
+
+    let lines =
+        Array.from(checked).map(cb => cb.value);
 
     row.querySelector(".shipping-btn").innerText =
-        lines.length ? lines.join(", ") : "Select Shipping Line";
+        lines.length
+        ? lines.join(", ")
+        : "Select Shipping Line";
 
-    let container = row.querySelector(".container-checkbox:checked")?.value;
+    let container =
+        row.querySelector(".container-checkbox:checked")?.value;
 
     fetchPorts(row, container, lines);
+
 }
 
-// ✅ ORIGIN CHANGE
+/* ================= SELECT ALL RUNNING ================= */
+
+if(e.target.id === "selectAllRunning"){
+
+    let checked = e.target.checked;
+
+    document.querySelectorAll(".stop-line")
+    .forEach(cb => {
+
+        cb.checked = checked;
+
+    });
+
+}
+
+/* ================= ORIGIN ================= */
+
 if(e.target.classList.contains("origin")){
+
     let row = e.target.closest(".form-section");
+
     updateOriginDestination(row);
+
 }
 
-// ✅ DESTINATION CHANGE
+/* ================= DESTINATION ================= */
+
 if(e.target.classList.contains("destination")){
+
     let row = e.target.closest(".form-section");
+
     updateOriginDestination(row);
+
 }
 
 });
 
+/* ================= RUN SCRAPER ================= */
+
+document.getElementById("scraperForm")
+.addEventListener("submit", function(e){
+
+    e.preventDefault();
+
+    scraperStarted = true;
+
+    document.getElementById("homeLink")
+    .setAttribute("target", "_blank");
+
+    document.getElementById("ratesLink")
+    .setAttribute("target", "_blank");
+
+    document.getElementById("trackerLink")
+    .setAttribute("target", "_blank");
+
+    let form =
+        document.getElementById("scraperForm");
+
+    let formData =
+        new FormData(form);
+
+    fetch("/run-scraper/", {
+
+        method: "POST",
+
+        body: formData
+
+    })
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        alert(data.msg);
+
+        loadRunningScrapers();
+
+    })
+
+    .catch(err => {
+
+        alert("Scraper Start Failed");
+
+    });
+
+});
+
+/* ================= STOP SELECTED ================= */
+
+document.getElementById("stopSelectedBtn")
+.addEventListener("click", function(){
+
+    let checked =
+        document.querySelectorAll(".stop-line:checked");
+
+    let lines =
+        Array.from(checked).map(cb => cb.value);
+
+    if(lines.length === 0){
+
+        alert("Please select running scraper");
+
+        return;
+    }
+
+    fetch("/stop-selected-scrapers/", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken":
+            document.querySelector("[name=csrfmiddlewaretoken]").value
+        },
+
+        body: JSON.stringify({
+            shipping_lines: lines
+        })
+
+    })
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        alert(data.msg);
+
+        loadRunningScrapers();
+
+    })
+
+    .catch(err => {
+
+        alert("Stop Failed");
+
+    });
+
+});
+
+/* ================= STOP ALL ================= */
+
+document.getElementById("stopAllBtn")
+.addEventListener("click", function(){
+
+    if(!confirm("Are you sure to stop all scrapers?")){
+        return;
+    }
+
+    fetch("/stop-all/", {
+
+        method: "POST",
+
+        headers: {
+            "X-CSRFToken":
+            document.querySelector("[name=csrfmiddlewaretoken]").value
+        }
+
+    })
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        alert(data.msg);
+
+        loadRunningScrapers();
+
+    })
+
+    .catch(err => {
+
+        alert("Stop Failed");
+
+    });
+
+});
+
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>

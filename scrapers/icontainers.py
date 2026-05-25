@@ -4,12 +4,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 import sys
-sys.stdout.reconfigure(encoding='utf-8')
 from datetime import datetime
 import pandas as pd
 import re
 import os
-# ================= FILE =================
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))            
 file_path = os.path.join(BASE_DIR, "global", "rates.xlsx")
 print(BASE_DIR)
@@ -31,60 +29,185 @@ columns = [
     "remarks"
 ]
 
-container_map = {
-    "20ft Dry Van": "1 × 20' ST",
-    "40ft Dry Van": "1 × 40' ST",
-    "40ft Dry Van High Cube": "1 × 40' HC"
-}
-
 origin_port_code = sys.argv[1]
 origin_port_name = sys.argv[2]
 destination_port_code = sys.argv[3]
 destination_port_name = sys.argv[4]
 container_size = sys.argv[5]
 print("Received arguments:", origin_port_code, origin_port_name, destination_port_code, destination_port_name, container_size)
+container_map = {
+    "20ft Dry Van": "1 × 20' ST",
+    "40ft Dry Van": "1 × 40' ST",
+    "40ft Dry Van High Cube": "1 × 40' HC"
+}
+cont_size=container_map.get(container_size, "")
+print("cont size", cont_size)
+data = []
+# =========================================================
+# CHROME SETUP
+# =========================================================
 
-
-# -------- DRIVER SETUP --------
 options = uc.ChromeOptions()
 options.add_argument("--start-maximized")
 options.add_argument("--disable-blink-features=AutomationControlled")
-driver = uc.Chrome( options=options, version_main=148, use_subprocess=True )
+options.add_argument(f"--user-data-dir={os.path.join(BASE_DIR, 'chrome', 'icontainers')}")
+options.add_argument(r"--profile-directory=Default")
+driver = uc.Chrome(options=options, version_main=148, use_subprocess=True)
 
 wait = WebDriverWait(driver, 30)
 
-# -------- OPEN LOGIN PAGE --------
+# =========================================================
+# OPEN WEBSITE
+# =========================================================
+
 driver.get("https://my.icontainers.com/sign-in")
-# -------- LOGIN --------
-while True:
-    try:
-        username = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='email']")))
-        username.clear()
-        username.send_keys("aman.aggarwal@softwareimpex.com")
 
-        password = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='password']")))
-        password.clear()
-        password.send_keys("4gRmrzs2FPf3Knj")
+driver.maximize_window()
 
-        remember = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='remember']")))
-        remember.click()
+time.sleep(10)
 
-        login_btn = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[type='submit']")))
-        login_btn.click()      
-        time.sleep(20)
-        # Example: dashboard ya logout button check
-        dashboard = driver.find_element(By.CSS_SELECTOR, "div[class='sc-dxjgzI fCktDF']").text.strip()
-        print(dashboard)
-        time.sleep(5)
-        if "Aman" in dashboard:
-            print("Login successful!")
-            driver.execute_script("window.location.href='/get-quote/ocean?selectedShipmentType=FCL'")
+# =========================================================
+# CHECK LOGIN
+# =========================================================
+
+already_logged_in = False
+
+try:
+
+    dashboard = driver.find_element(
+        By.CSS_SELECTOR,
+        "div[class='sc-dxjgzI fCktDF']"
+    ).text.strip()
+
+    print("DASHBOARD :", dashboard)
+
+    if "Aman" in dashboard:
+
+        already_logged_in = True
+
+        print("Already Logged In ✅")
+
+except:
+
+    print("Login Required 🔐")
+
+# =========================================================
+# LOGIN ONLY IF NEEDED
+# =========================================================
+
+if not already_logged_in:
+
+    while True:
+
+        try:
+
+            # =============================================
+            # USERNAME
+            # =============================================
+
+            username = wait.until(
+                EC.presence_of_element_located(
+                    (
+                        By.CSS_SELECTOR,
+                        "input[type='email']"
+                    )
+                )
+            )
+
+            username.clear()
+
+            username.send_keys(
+                "aman.aggarwal@softwareimpex.com"
+            )
+
+            # =============================================
+            # PASSWORD
+            # =============================================
+
+            password = wait.until(
+                EC.presence_of_element_located(
+                    (
+                        By.CSS_SELECTOR,
+                        "input[type='password']"
+                    )
+                )
+            )
+
+            password.clear()
+
+            password.send_keys(
+                "4gRmrzs2FPf3Knj"
+            )
+
+            # =============================================
+            # REMEMBER ME
+            # =============================================
+
+            remember = wait.until(
+                EC.presence_of_element_located(
+                    (
+                        By.CSS_SELECTOR,
+                        "input[name='remember']"
+                    )
+                )
+            )
+
+            if not remember.is_selected():
+
+                remember.click()
+
+            # =============================================
+            # LOGIN BUTTON
+            # =============================================
+
+            login_btn = wait.until(
+                EC.element_to_be_clickable(
+                    (
+                        By.CSS_SELECTOR,
+                        "button[type='submit']"
+                    )
+                )
+            )
+
+            login_btn.click()
+
+            print("Login Button Clicked ✅")
+
+            time.sleep(20)
+
+            # =============================================
+            # CHECK LOGIN SUCCESS
+            # =============================================
+
+            dashboard = driver.find_element(
+                By.CSS_SELECTOR,
+                "div[class='sc-dxjgzI fCktDF']"
+            ).text.strip()
+
+            print("DASHBOARD :", dashboard)
+
+            if "Aman" in dashboard:
+
+                print("Login Successful ✅")                
+                break
+
+            else:
+
+                print("Login Failed ❌")
+
+        except Exception as e:
+
+            print("Login Error :", e)
+
             time.sleep(5)
-            break
-        else:
-            print("Login failed, retrying...")
-    except Exception as e:
-        print("Login error:", e)
+
+# =========================================================
+# LOGIN COMPLETED
+# =========================================================
+
+print("READY FOR SCRAPING ✅")
+driver.get("https://my.icontainers.com/get-quote/ocean?selectedShipmentType=FCL")
+time.sleep(10)
         
 origin_input = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input[name='origin']")))
 origin_input.send_keys(origin_port_code)
@@ -130,18 +253,16 @@ search_btn = wait.until(EC.element_to_be_clickable((
 )))
 search_btn.click()
 time.sleep(30)
-print("Final Container Value:", container_map.get(container_size, ""))
-cont_size=container_map.get(container_size, "")
-data = []
+
 today = datetime.today().strftime('%d-%b-%Y')
 cards = []
 
 time.sleep(30)
-# try:
-#     all_rates_btn = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-testid='ALL_RATES']")))
-#     all_rates_btn.click()
-# except:
-#     pass
+try:
+    all_rates_btn = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-testid='ALL_RATES']")))
+    all_rates_btn.click()
+except:
+    pass
 time.sleep(2)
 try:
     cards = wait.until(
@@ -160,11 +281,11 @@ try:
 except:
     pass    
 
-def format_end_date(raw_end_date):
-    try:
-        return datetime.strptime(raw_end_date, "%d %b %Y").strftime("%d-%b-%Y")
-    except Exception as e:
-        return None
+import re
+from datetime import datetime
+
+import re
+from datetime import datetime
 
 for lo in cards:
     try:
@@ -175,7 +296,7 @@ for lo in cards:
             ".//div[.='Valid Until']/following::div[contains(@class,'value')][1]"
         ).text
 
-        end_date = format_end_date(raw_end_date)
+        end_date = datetime.strptime(raw_end_date, '%d %b %Y').strftime('%d-%b-%Y')
         print(start_date, end_date)
 
         # open modal
@@ -246,7 +367,5 @@ except:
 final_df.to_excel(file_path, index=False)
 
 print("Data saved successfully")
-try:
-    driver.quit()
-except:
-    pass
+
+driver.quit()

@@ -1,151 +1,641 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <title>Shipping Dashboard</title>
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        Global Shipping Automation
+    </title>
 
     <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet">
+
+    <!-- Google Font -->
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
 
     <style>
-        body {
-            background: #f4f6f9;
+
+        *{
+            font-family:'Poppins', sans-serif;
         }
 
-        .header {
-            background: linear-gradient(135deg, #0d6efd, #0dcaf0);
-            color: white;
-            padding: 30px;
-            border-radius: 12px;
-            text-align: center;
+        body{
+            background:#f4f7fb;
+            overflow-x:hidden;
         }
 
-        .nav-btns a {
-            min-width: 140px;
+        /* ================= NAVBAR ================= */
+
+        .navbar{
+            background:#0f172a;
+            padding:16px 0;
+            box-shadow:0 5px 20px rgba(0,0,0,0.08);
         }
 
-        .card {
-            border: none;
-            border-radius: 14px;
-            transition: 0.3s;
+        .navbar-brand{
+            color:white !important;
+            font-weight:700;
+            font-size:28px;
         }
 
-        .card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        .nav-btn{
+            border-radius:12px;
+            padding:10px 22px;
+            font-weight:600;
+            transition:0.3s;
         }
 
-        .card img {
-            height: 100px;
-            object-fit: contain;
+        .nav-btn:hover{
+            transform:translateY(-2px);
         }
 
-        .card-body h6 {
-            font-weight: 600;
+        /* ================= SLIDER ================= */
+
+        .carousel{
+            margin-top:30px;
+            border-radius:28px;
+            overflow:hidden;
+            box-shadow:0 15px 40px rgba(0,0,0,0.15);
         }
 
-        .run-btn {
-            border-radius: 20px;
-            padding: 6px 18px;
+        .slider-img{
+            height:340px;
+            object-fit:cover;
+            filter:brightness(55%);
         }
 
-        .section-title {
-            font-weight: 600;
-            margin-bottom: 15px;
+        .carousel-caption{
+            bottom:16%;
         }
+
+        .carousel-caption h1{
+            font-size:48px;
+            font-weight:700;
+            text-shadow:0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        .carousel-caption p{
+            font-size:18px;
+            margin-top:15px;
+            line-height:1.8;
+            text-shadow:0 3px 10px rgba(0,0,0,0.5);
+        }
+
+        .hero-btn{
+            padding:12px 24px;
+            border-radius:14px;
+            font-weight:600;
+            margin:8px;
+        }
+
+        .carousel-control-prev-icon,
+        .carousel-control-next-icon{
+            background-color:rgba(0,0,0,0.4);
+            border-radius:50%;
+            padding:18px;
+        }
+
+        /* ================= SECTION TITLE ================= */
+
+        .section-title{
+            text-align:center;
+            margin-top:80px;
+            margin-bottom:50px;
+        }
+
+        .section-title h2{
+            font-size:42px;
+            font-weight:700;
+            color:#0f172a;
+        }
+
+        .section-title p{
+            color:#6b7280;
+            margin-top:15px;
+            font-size:16px;
+        }
+
+        /* ================= FEATURE CARDS ================= */
+
+        .feature-card{
+            background:white;
+            border:none;
+            border-radius:24px;
+            padding:40px 30px;
+            transition:0.3s;
+            height:100%;
+            box-shadow:0 10px 30px rgba(0,0,0,0.06);
+        }
+
+        .feature-card:hover{
+            transform:translateY(-8px);
+            box-shadow:0 20px 40px rgba(0,0,0,0.12);
+        }
+
+        .feature-icon{
+            width:80px;
+            height:80px;
+            background:#edf4ff;
+            color:#2563eb;
+            border-radius:22px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:34px;
+            margin-bottom:25px;
+        }
+
+        .feature-card h4{
+            font-weight:700;
+            margin-bottom:18px;
+        }
+
+        .feature-card p{
+            color:#6b7280;
+            line-height:1.8;
+        }
+
+        /* ================= ABOUT ================= */
+
+        .about-box{
+            margin-top:90px;
+            background:white;
+            border-radius:30px;
+            padding:60px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.06);
+        }
+
+        .about-box h2{
+            font-weight:700;
+            margin-bottom:25px;
+        }
+
+        .about-box p{
+            color:#6b7280;
+            line-height:1.9;
+        }
+
+        .about-list li{
+            margin-bottom:18px;
+            font-weight:500;
+        }
+
+        .about-list i{
+            color:#0d6efd;
+            margin-right:10px;
+        }
+
+        .about-image{
+            border-radius:24px;
+            overflow:hidden;
+            box-shadow:0 15px 30px rgba(0,0,0,0.12);
+        }
+
+        .about-image img{
+            width:100%;
+            height:380px;
+            object-fit:cover;
+        }
+
+        /* ================= FOOTER ================= */
+
+        .footer{
+            margin-top:100px;
+            background:#0f172a;
+            color:white;
+            text-align:center;
+            padding:35px;
+            border-radius:30px 30px 0 0;
+        }
+
+        .footer p{
+            margin:0;
+            opacity:0.85;
+        }
+
+        /* ================= MOBILE ================= */
+
+        @media(max-width:768px){
+
+            .slider-img{
+                height:240px;
+            }
+
+            .carousel-caption{
+                bottom:10%;
+            }
+
+            .carousel-caption h1{
+                font-size:26px;
+            }
+
+            .carousel-caption p{
+                font-size:13px;
+                line-height:1.5;
+            }
+
+            .hero-btn{
+                display:block;
+                width:100%;
+                margin-top:10px;
+            }
+
+            .about-box{
+                padding:30px;
+            }
+
+            .section-title h2{
+                font-size:30px;
+            }
+        }
+
     </style>
+
 </head>
 
 <body>
 
-<div class="container mt-4">
+<!-- ================= NAVBAR ================= -->
 
-    <!-- 🔹 Header -->
-    <div class="header mb-4">
-        <h2>🚢 Shipping Dashboard</h2>
-        <p class="mb-0">Manage Scraping & View Shipping Rates Efficiently</p>
+<nav class="navbar navbar-expand-lg navbar-dark">
+
+    <div class="container">
+
+        <a class="navbar-brand" href="/">
+            🚢 Shipping Automation
+        </a>
+
+        <div class="d-flex gap-2">
+
+            <a href="/scraper/"
+               class="btn btn-warning nav-btn">
+
+                <i class="bi bi-rocket-takeoff-fill"></i>
+                Run Scraper
+
+            </a>
+
+            <a href="/rates/"
+               class="btn btn-info text-white nav-btn">
+
+                <i class="bi bi-bar-chart-fill"></i>
+                View Rates
+
+            </a>
+
+            <a href="/run-tracker/"
+               class="btn btn-dark nav-btn">
+
+                <i class="bi bi-activity"></i>
+                Run Tracker
+
+            </a>
+
+        </div>
+
     </div>
 
-    <!-- 🔹 Navigation -->
-    <div class="d-flex justify-content-center gap-3 mb-4 nav-btns">
-        <a href="/" class="btn btn-success">
-            <i class="bi bi-house-door"></i> Home
-        </a>
-        
-        <a href="/rates/" class="btn btn-info text-white">
-            <i class="bi bi-bar-chart"></i> View Rates
-        </a>
-        <a href="/scraper/" class="btn btn-warning">
-            <i class="bi bi-rocket"></i> Run Scraper
-        </a>
-        <a href="/run-tracker/" class="btn btn-dark">
-            <i class="bi bi-activity"></i> Run Tracker
-        </a>
+</nav>
+
+<div class="container">
+
+    <!-- ================= SLIDER ================= -->
+
+    <div id="shippingSlider"
+         class="carousel slide carousel-fade"
+         data-bs-ride="carousel"
+         data-bs-interval="3000">
+
+        <!-- INDICATORS -->
+
+        <div class="carousel-indicators">
+
+            <button type="button"
+                    data-bs-target="#shippingSlider"
+                    data-bs-slide-to="0"
+                    class="active"></button>
+
+            <button type="button"
+                    data-bs-target="#shippingSlider"
+                    data-bs-slide-to="1"></button>
+
+            <button type="button"
+                    data-bs-target="#shippingSlider"
+                    data-bs-slide-to="2"></button>
+
+            <button type="button"
+                    data-bs-target="#shippingSlider"
+                    data-bs-slide-to="3"></button>
+
+        </div>
+
+        <div class="carousel-inner">
+
+            <!-- IMAGE 1 -->
+
+            <div class="carousel-item active">
+
+                <img src="{% static 'images/1.jpg' %}"
+                     class="d-block w-100 slider-img">
+
+                <div class="carousel-caption">
+
+                    <h1>
+                        Global Shipping Automation
+                    </h1>
+
+                    <p>
+                        Smart freight rate scraping and logistics management platform.
+                    </p>
+
+                    <div class="mt-4">
+
+                        <a href="/scraper/"
+                           class="btn btn-warning hero-btn">
+
+                            <i class="bi bi-rocket-takeoff-fill"></i>
+                            Run Scraper
+
+                        </a>
+
+                        <a href="/rates/"
+                           class="btn btn-light hero-btn">
+
+                            <i class="bi bi-bar-chart-fill"></i>
+                            View Rates
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- IMAGE 2 -->
+
+            <div class="carousel-item">
+
+                <img src="{% static 'images/2.jpg' %}"
+                     class="d-block w-100 slider-img">
+
+                <div class="carousel-caption">
+
+                    <h1>
+                        Container Tracking System
+                    </h1>
+
+                    <p>
+                        Real-time container monitoring and shipping analytics dashboard.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <!-- IMAGE 3 -->
+
+            <div class="carousel-item">
+
+                <img src="{% static 'images/3.jpg' %}"
+                     class="d-block w-100 slider-img">
+
+                <div class="carousel-caption">
+
+                    <h1>
+                        Automated Freight Rates
+                    </h1>
+
+                    <p>
+                        Automatically import and manage shipping freight rates.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <!-- IMAGE 4 -->
+
+            <div class="carousel-item">
+
+                <img src="{% static 'images/4.jpg' %}"
+                     class="d-block w-100 slider-img">
+
+                <div class="carousel-caption">
+
+                    <h1>
+                        Logistics Intelligence
+                    </h1>
+
+                    <p>
+                        Professional shipping automation for modern logistics businesses.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- PREV -->
+
+        <button class="carousel-control-prev"
+                type="button"
+                data-bs-target="#shippingSlider"
+                data-bs-slide="prev">
+
+            <span class="carousel-control-prev-icon"></span>
+
+        </button>
+
+        <!-- NEXT -->
+
+        <button class="carousel-control-next"
+                type="button"
+                data-bs-target="#shippingSlider"
+                data-bs-slide="next">
+
+            <span class="carousel-control-next-icon"></span>
+
+        </button>
+
     </div>
 
-    <!-- 🔹 Section -->
-    <h4 class="section-title">🚢 Shipping Lines</h4>
+    <!-- ================= SECTION TITLE ================= -->
 
-    <div class="row">
+    <div class="section-title">
 
-        <!-- Hapag -->
-        <div class="col-md-3">
-            <div class="card shadow-sm mb-4 text-center p-3">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/3/3b/Hapag-Lloyd_Logo.svg">
-                <div class="card-body">
-                    <h6>Hapag-Lloyd</h6>
-                    <a href="/scraper/?line=HAPAG" class="btn btn-warning btn-sm run-btn mt-2">
-                        ▶ Run Scraper
-                    </a>
+        <h2>
+            Professional Shipping Platform
+        </h2>
+
+        <p>
+            Automate shipping freight scraping, Excel imports,
+            and global logistics management from one dashboard.
+        </p>
+
+    </div>
+
+    <!-- ================= FEATURE CARDS ================= -->
+
+    <div class="row g-4">
+
+        <div class="col-md-4">
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+                    <i class="bi bi-globe2"></i>
                 </div>
+
+                <h4>
+                    Global Coverage
+                </h4>
+
+                <p>
+                    Access worldwide shipping rates
+                    across multiple ports and trade routes.
+                </p>
+
             </div>
+
         </div>
 
-        <!-- MSC -->
-        <div class="col-md-3">
-            <div class="card shadow-sm mb-4 text-center p-3">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/MSC_Logo.svg">
-                <div class="card-body">
-                    <h6>MSC</h6>
-                    <a href="/scraper/?line=MSC" class="btn btn-warning btn-sm run-btn mt-2">
-                        ▶ Run Scraper
-                    </a>
+        <div class="col-md-4">
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+                    <i class="bi bi-cpu-fill"></i>
                 </div>
+
+                <h4>
+                    Automation Engine
+                </h4>
+
+                <p>
+                    Python and Django powered automation
+                    for shipping data scraping and importing.
+                </p>
+
             </div>
+
         </div>
 
-        <!-- Maersk -->
-        <div class="col-md-3">
-            <div class="card shadow-sm mb-4 text-center p-3">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Maersk_Logo.svg">
-                <div class="card-body">
-                    <h6>Maersk</h6>
-                    <a href="/scraper/?line=MAERSK" class="btn btn-warning btn-sm run-btn mt-2">
-                        ▶ Run Scraper
-                    </a>
+        <div class="col-md-4">
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+                    <i class="bi bi-graph-up-arrow"></i>
                 </div>
+
+                <h4>
+                    Live Monitoring
+                </h4>
+
+                <p>
+                    Monitor scraper logs,
+                    automation status, and freight activity live.
+                </p>
+
             </div>
+
         </div>
 
-        <!-- CMA -->
-        <div class="col-md-3">
-            <div class="card shadow-sm mb-4 text-center p-3">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/5/5f/CMA_CGM_logo.svg">
-                <div class="card-body">
-                    <h6>CMA CGM</h6>
-                    <a href="/scraper/?line=CMA%20CGM" class="btn btn-warning btn-sm run-btn mt-2">
-                        ▶ Run Scraper
-                    </a>
-                </div>
+    </div>
+
+    <!-- ================= ABOUT ================= -->
+
+    <div class="about-box">
+
+        <div class="row align-items-center">
+
+            <div class="col-lg-6">
+
+                <h2>
+                    Smart Freight Rate Management
+                </h2>
+
+                <p>
+                    Designed for professional logistics operations,
+                    this platform automates freight scraping,
+                    shipping rate monitoring,
+                    and centralized logistics analytics.
+                </p>
+
+                <ul class="about-list list-unstyled mt-4">
+
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        Automated Freight Scraping
+                    </li>
+
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        Excel to Database Import
+                    </li>
+
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        Real-Time Shipping Analytics
+                    </li>
+
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        Global Container Monitoring
+                    </li>
+
+                </ul>
+
             </div>
+
+            <div class="col-lg-6">
+
+                <div class="about-image">
+
+                    <img src="{% static 'images/2.jpg' %}">
+
+                </div>
+
+            </div>
+
         </div>
+
+    </div>
+
+    <!-- ================= FOOTER ================= -->
+
+    <div class="footer">
+
+        <p>
+            © 2026 Shipping Automation Platform |
+            Professional Logistics Management System
+        </p>
 
     </div>
 
 </div>
+
+<!-- Bootstrap JS -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

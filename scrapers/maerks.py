@@ -14,8 +14,6 @@ import os
 # ================= FILE =================
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))            
 file_path = os.path.join(BASE_DIR, "global", "rates.xlsx")
-print(BASE_DIR)
-print(file_path)
 
 columns = [
     "date",
@@ -41,11 +39,7 @@ options.add_argument("--disable-blink-features=AutomationControlled")
 profile_path = os.path.join(BASE_DIR, "chrome", "maersk")
 options.add_argument(f"--user-data-dir={profile_path}")
 
-driver = uc.Chrome(
-    options=options,
-    version_main=148,
-    use_subprocess=True
-)
+driver = uc.Chrome(options=options, version_main=148, use_subprocess=True)
 
 wait = WebDriverWait(driver, 30)
 
@@ -76,10 +70,10 @@ try:
     )
 
     already_logged_in = True
-    print("Already Logged In")
+    print("Already Logged In ✅")
 
 except:
-    print("Login Required")
+    print("Login Required 🔐")
 
 
 # ========= LOGIN ONLY IF NEEDED =========
@@ -107,7 +101,7 @@ if not already_logged_in:
     btn.shadowRoot.querySelector("button").click();
     """)
 
-    print("Login Done.")
+    print("Login Done ✅")
 
 time.sleep(20)
 
@@ -131,22 +125,25 @@ except:
     pass    
 time.sleep(10)
 
-import sys
 today = datetime.today().strftime('%d-%b-%Y')
+import sys
 
 origin_port_code = sys.argv[1]
 origin_port_name = sys.argv[2]
 destination_port_code = sys.argv[3]
 destination_port_name = sys.argv[4]
 container_type = sys.argv[5]
-
+print("Received arguments:", origin_port_code, origin_port_name, destination_port_code, destination_port_name, container_type)
 container_map = {
     "20 Dry Standard": "1 × 20' ST",
     "40 Dry Standard": "1 × 40' ST",
     "40 Dry High": "1 × 40' HC",
-    "45 Dry High": "1 × 45' HC"  
+    "45 Dry High": "1 × 45' HC"
 }
+
 cont_size = container_map.get(container_type, "")
+print("Mapped container type:", cont_size)
+
 data = []
 
 origin = driver.execute_script("""
@@ -1053,246 +1050,12 @@ return "✅ clicked";
 """)
 
 time.sleep(10)
+#***************************************************************************
 
-select_tomorrow_result = driver.execute_script("""
+retry = driver.execute_script("""
 async function sleep(ms){
     return new Promise(r => setTimeout(r, ms));
 }
-
-async function run(){
-
-    function deepAll(selector, root=document){
-
-        let results = [];
-
-        try{
-            results.push(...root.querySelectorAll(selector));
-        }catch(e){}
-
-        let all = [];
-
-        try{
-            all = root.querySelectorAll("*");
-        }catch(e){}
-
-        for(let el of all){
-
-            if(el.shadowRoot){
-
-                results.push(...deepAll(selector, el.shadowRoot));
-            }
-        }
-
-        return results;
-    }
-
-    let selectTomorrowBtn = null;
-
-    let links = deepAll('a');
-
-    for(let link of links){
-
-        let text = (link.innerText || '').trim();
-
-        let cls = link.className || '';
-
-        if(
-            text.includes('Select tomorrow') ||
-            cls.includes('select-tomorrow-link')
-        ){
-
-            selectTomorrowBtn = link;
-            break;
-        }
-    }
-
-    if(!selectTomorrowBtn){
-        return "❌ SELECT TOMORROW BUTTON NOT FOUND";
-    }
-
-    selectTomorrowBtn.scrollIntoView({
-        block:'center'
-    });
-
-    await sleep(1000);
-
-    selectTomorrowBtn.dispatchEvent(new MouseEvent('mouseover',{
-        bubbles:true,
-        composed:true
-    }));
-
-    selectTomorrowBtn.dispatchEvent(new MouseEvent('mousedown',{
-        bubbles:true,
-        composed:true
-    }));
-
-    selectTomorrowBtn.dispatchEvent(new MouseEvent('mouseup',{
-        bubbles:true,
-        composed:true
-    }));
-
-    selectTomorrowBtn.dispatchEvent(new MouseEvent('click',{
-        bubbles:true,
-        composed:true
-    }));
-
-    selectTomorrowBtn.click();
-
-    await sleep(3000);
-
-    return "✅ SELECT TOMORROW CLICKED";
-}
-
-return run();
-""")
-
-print(select_tomorrow_result)
-time.sleep(10)
-continue_result = driver.execute_script("""
-
-async function sleep(ms){
-    return new Promise(r => setTimeout(r, ms));
-}
-
-async function run(){
-
-    // =========================================
-    // DEEP QUERY SHADOW DOM
-    // =========================================
-
-    function deepQuery(selector){
-
-        function search(root){
-
-            let el = root.querySelector(selector);
-
-            if(el) return el;
-
-            let all = root.querySelectorAll("*");
-
-            for(let node of all){
-
-                if(node.shadowRoot){
-
-                    let found = search(node.shadowRoot);
-
-                    if(found) return found;
-                }
-            }
-
-            return null;
-        }
-
-        return search(document);
-    }
-
-    // =========================================
-    // FIND BUTTON COMPONENT
-    // =========================================
-
-    let mcBtn = deepQuery("#od3cpContinueButton");
-
-    if(!mcBtn)
-        return "❌ MC BUTTON NOT FOUND";
-
-    // =========================================
-    // INNER REAL BUTTON
-    // =========================================
-
-    let realBtn = null;
-
-    if(mcBtn.shadowRoot){
-        realBtn = mcBtn.shadowRoot.querySelector("button");
-    }
-
-    if(!realBtn)
-        return "❌ INNER BUTTON NOT FOUND";
-
-    // =========================================
-    // ENABLE BUTTON
-    // =========================================
-
-    mcBtn.disabled = false;
-    realBtn.disabled = false;
-
-    mcBtn.removeAttribute("disabled");
-    realBtn.removeAttribute("disabled");
-
-    realBtn.removeAttribute("disabled");
-
-    realBtn.style.pointerEvents = "auto";
-    realBtn.style.opacity = "1";
-    realBtn.style.visibility = "visible";
-
-    // =========================================
-    // SCROLL
-    // =========================================
-
-    realBtn.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-    });
-
-    await sleep(1500);
-
-    // =========================================
-    // USER EVENTS
-    // =========================================
-
-    let events = [
-        "mouseover",
-        "mouseenter",
-        "pointerdown",
-        "mousedown",
-        "focus",
-        "pointerup",
-        "mouseup",
-        "click"
-    ];
-
-    for(let ev of events){
-
-        realBtn.dispatchEvent(
-            new MouseEvent(ev,{
-                bubbles:true,
-                cancelable:true,
-                composed:true,
-                view:window
-            })
-        );
-
-        await sleep(100);
-    }
-
-    // =========================================
-    // DIRECT CLICK
-    // =========================================
-
-    realBtn.click();
-
-    await sleep(3000);
-
-    // =========================================
-    // CHECK NAVIGATION
-    // =========================================
-
-    return {
-        status : "✅ CONTINUE BUTTON CLICKED",
-        currentUrl : location.href,
-        buttonText : realBtn.innerText,
-        disabled : realBtn.disabled
-    };
-}
-
-return run();
-
-""")
-
-print(continue_result)
-
-time.sleep(10)
-
-result = driver.execute_script("""
 
 function deepAll(selector, root=document){
 
@@ -1302,13 +1065,105 @@ function deepAll(selector, root=document){
         results.push(...root.querySelectorAll(selector));
     }catch(e){}
 
-    let els = [];
+    let all = [];
 
     try{
-        els = root.querySelectorAll("*");
+        all = root.querySelectorAll("*");
     }catch(e){}
 
-    for(let el of els){
+    for(let el of all){
+
+        if(el.shadowRoot){
+
+            results.push(...deepAll(selector, el.shadowRoot));
+        }
+    }
+
+    return results;
+}
+
+async function run(){
+
+    let retryBtn = null;
+
+    let buttons = deepAll('mc-button');
+
+    for(let btn of buttons){
+
+        let txt =
+            (btn.getAttribute('label') || '') +
+            ' ' +
+            (btn.innerText || btn.textContent || '');
+
+        txt = txt.toLowerCase();
+
+        if(txt.includes('retry')){
+
+            retryBtn = btn;
+            break;
+        }
+    }
+
+    // =========================================
+    // BUTTON FOUND
+    // =========================================
+
+    if(retryBtn){
+
+        retryBtn.scrollIntoView({
+            behavior:'smooth',
+            block:'center'
+        });
+
+        await sleep(1500);
+
+        try{
+
+            retryBtn.click();
+
+        }catch(e){
+
+            retryBtn.dispatchEvent(new MouseEvent('click',{
+                bubbles:true,
+                composed:true
+            }));
+        }
+
+        await sleep(4000);
+
+        return "RETRY_CLICKED";
+    }
+
+    // =========================================
+    // BUTTON NOT FOUND
+    // =========================================
+
+    return "RETRY_NOT_FOUND";
+}
+
+return run();
+""")
+
+print(retry)
+
+time.sleep(15)
+
+spot = driver.execute_script("""
+function deepAll(selector, root=document){
+
+    let results = [];
+
+    try{
+        results.push(...root.querySelectorAll(selector));
+    }catch(e){}
+
+    let all = [];
+
+    try{
+        all = root.querySelectorAll("*");
+    }catch(e){}
+
+    for(let el of all){
 
         if(el.shadowRoot){
             results.push(...deepAll(selector, el.shadowRoot));
@@ -1318,583 +1173,819 @@ function deepAll(selector, root=document){
     return results;
 }
 
-let arr = [];
+let headers = deepAll('[data-test="pricing-info-header"]');
 
-let buttons = deepAll("mc-button");
+for(let h of headers){
 
-for(let b of buttons){
+    let txt = (h.innerText || h.textContent || '').trim();
 
-    arr.push({
-        tag: b.tagName,
-        label: b.getAttribute("label"),
-        test: b.getAttribute("data-test"),
-        text: (b.innerText || b.textContent || "").trim()
-    });
+    if(txt.includes('Spot and market rates')){
+
+        return true;
+    }
 }
 
-return arr;
-
+return false;
 """)
 
-print(result)
+# =========================================================
+print(spot)
+# =========================================================
 
+if spot:
 
-try:
-    iframe = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'iframe[title="hCaptcha challenge"]')))
-    driver.switch_to.frame(iframe)
-except:
-    pass
-   
-    
-driver.set_script_timeout(300)
+    print("✅ Spot and market rates FOUND")
 
-load_more_result = driver.execute_async_script("""
+    checkedCards = set()
+    currentPage = 1
 
-const callback = arguments[arguments.length - 1];
+    while True:
 
-async function sleep(ms){
-    return new Promise(r => setTimeout(r, ms));
-}
+        print(f"\n📄 PAGE : {currentPage}")
+        print(f"✅ Checked Cards : {checkedCards}")
 
-async function run(){
+        rates = driver.execute_script("""
 
-    function deepAll(selector, root=document){
-
-        let results = [];
-
-        try{
-            results.push(...root.querySelectorAll(selector));
-        }catch(e){}
-
-        let els = [];
-
-        try{
-            els = root.querySelectorAll("*");
-        }catch(e){}
-
-        for(let el of els){
-
-            if(el.shadowRoot){
-                results.push(...deepAll(selector, el.shadowRoot));
-            }
+        async function sleep(ms){
+            return new Promise(r => setTimeout(r, ms));
         }
 
-        return results;
+        async function run(checkedCards){
+
+            // =====================================================
+            // DEEP QUERY
+            // =====================================================
+
+            function deepAll(selector, root=document){
+
+                let results = [];
+
+                try{
+                    results.push(...root.querySelectorAll(selector));
+                }catch(e){}
+
+                let all = [];
+
+                try{
+                    all = root.querySelectorAll("*");
+                }catch(e){}
+
+                for(let el of all){
+
+                    if(el.shadowRoot){
+
+                        results.push(...deepAll(selector, el.shadowRoot));
+                    }
+                }
+
+                return results;
+            }
+
+            // =====================================================
+            // OFFER CARDS
+            // =====================================================
+
+            let cards = deepAll("div.offer-cards__body");
+
+            if(cards.length === 0){
+
+                return "NO_CARDS_FOUND";
+            }
+
+            // =====================================================
+            // LOOP CARDS
+            // =====================================================
+
+            for(let i=0; i<cards.length; i++){
+
+                if(checkedCards.includes(i)){
+                    continue;
+                }
+
+                let card = cards[i];
+
+                // =================================================
+                // PRICE DETAILS BUTTON
+                // =================================================
+
+                let btn = null;
+
+                let buttons = card.querySelectorAll("mc-button");
+
+                for(let b of buttons){
+
+                    let txt = (
+                        (b.getAttribute("label") || "") + " " +
+                        (b.textContent || "")
+                    ).toLowerCase();
+
+                    if(txt.includes("price details")){
+
+                        btn = b;
+                        break;
+                    }
+                }
+
+                if(!btn){
+
+                    checkedCards.push(i);
+                    continue;
+                }
+
+                // =================================================
+                // CLICK BUTTON
+                // =================================================
+
+                btn.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+
+                await sleep(2000);
+
+                try{
+                    btn.click();
+                }
+                catch(e){
+
+                    btn.dispatchEvent(
+                        new MouseEvent("click",{
+                            bubbles:true,
+                            composed:true
+                        })
+                    );
+                }
+
+                await sleep(8000);
+
+                // =================================================
+                // TABLE
+                // =================================================
+
+                let table =
+                    deepAll(".mds-table table")[0];
+
+                if(!table){
+
+                    checkedCards.push(i);
+                    continue;
+                }
+
+                // =================================================
+                // DEPARTURE / ARRIVAL
+                // =================================================
+
+                let departure = "";
+                let arrival = "";
+
+                let modal =
+                    deepAll(".offer-modal-header")[0];
+
+                if(modal){
+
+                    let dep =
+                        modal.querySelector(
+                            '[data-test="header-label-departure"]'
+                        );
+
+                    if(dep){
+
+                        let parent = dep.parentElement;
+
+                        let ps = parent.querySelectorAll("p");
+
+                        if(ps.length > 1){
+
+                            departure =
+                                ps[1].textContent.trim();
+                        }
+                    }
+
+                    let arr =
+                        modal.querySelector(
+                            '[data-test="header-label-arrival"]'
+                        );
+
+                    if(arr){
+
+                        let parent = arr.parentElement;
+
+                        let ps = parent.querySelectorAll("p");
+
+                        if(ps.length > 1){
+
+                            arrival =
+                                ps[1].textContent.trim();
+                        }
+                    }
+                }
+
+                // =================================================
+                // ROWS
+                // =================================================
+
+                let rows = table.querySelectorAll("tbody tr");
+
+                console.log("TOTAL ROWS =", rows.length);
+
+                let freightTotal = 0;
+                let originTotal = 0;
+                let destinationTotal = 0;
+
+                let freightItems = [];
+                let originItems = [];
+                let destinationItems = [];
+
+                let currentSection = "freight";
+
+                // =================================================
+                // LOOP ROWS
+                // =================================================
+
+                for(let row of rows){
+
+                    let cols = row.querySelectorAll("td");
+
+                    if(cols.length < 6){
+                        continue;
+                    }
+
+                    // =============================================
+                    // NAME
+                    // =============================================
+
+                    let chargeName =
+                        cols[0].textContent
+                        .replace(/\\s+/g,' ')
+                        .trim();
+
+                    if(!chargeName){
+                        continue;
+                    }
+
+                    let lower =
+                        chargeName.toLowerCase();
+
+                    console.log("ROW =", chargeName);
+
+                    // =============================================
+                    // SECTION HEADINGS
+                    // =============================================
+
+                    if(lower === "origin charges"){
+
+                        currentSection = "origin";
+                        console.log("SECTION => ORIGIN");
+                        continue;
+                    }
+
+                    if(lower === "destination charges"){
+
+                        currentSection = "destination";
+                        console.log("SECTION => DESTINATION");
+                        continue;
+                    }
+
+                    if(lower === "freight charges"){
+
+                        currentSection = "freight";
+                        console.log("SECTION => FREIGHT");
+                        continue;
+                    }
+
+                    // =============================================
+                    // SKIP HEADER ROWS
+                    // =============================================
+
+                    if(
+                        lower === "basis" ||
+                        lower === "quantity" ||
+                        lower === "currency" ||
+                        lower === "unit price" ||
+                        lower === "total price"
+                    ){
+                        continue;
+                    }
+
+                    // =============================================
+                    // LAST COLUMN
+                    // =============================================
+
+                    let totalCol =
+                        cols[cols.length - 1];
+
+                    let rawText =
+                        totalCol.textContent || "";
+
+                    let amountText =
+                        rawText
+                        .replace(/,/g,'')
+                        .replace(/[^0-9.]/g,'');
+
+                    let amount =
+                        parseFloat(amountText);
+
+                    if(isNaN(amount)){
+                        amount = 0;
+                    }
+
+                    console.log(
+                        "CHARGE =",
+                        chargeName,
+                        "SECTION =",
+                        currentSection,
+                        "AMOUNT =",
+                        amount
+                    );
+
+                    let item = {
+                        charge: chargeName,
+                        amount: amount
+                    };
+
+                    // =============================================
+                    // SAVE DATA
+                    // =============================================
+
+                    if(currentSection === "freight"){
+
+                        freightTotal += amount;
+                        freightItems.push(item);
+                    }
+
+                    else if(currentSection === "origin"){
+
+                        originTotal += amount;
+                        originItems.push(item);
+                    }
+
+                    else if(currentSection === "destination"){
+
+                        destinationTotal += amount;
+                        destinationItems.push(item);
+                    }
+                }
+
+                // =================================================
+                // CLOSE MODAL
+                // =================================================
+
+                let closeBtn =
+                    deepAll(
+                        'mc-button[data-test="offer-modal-close-icon"]'
+                    )[0];
+
+                if(closeBtn){
+
+                    try{
+                        closeBtn.click();
+                    }
+                    catch(e){}
+
+                    await sleep(3000);
+                }
+
+                checkedCards.push(i);
+
+                // =================================================
+                // RETURN
+                // =================================================
+
+                return {
+
+                    status: "SUCCESS",
+
+                    departure,
+                    arrival,
+
+                    freightTotal,
+                    originTotal,
+                    destinationTotal,
+
+                    freightItems,
+                    originItems,
+                    destinationItems,
+
+                    checkedCards
+                };
+            }
+
+            // =====================================================
+            // ALL CARDS CHECKED
+            // =====================================================
+
+            return {
+                status: "ALL_CARDS_CHECKED",
+                checkedCards
+            };
+        }
+
+        return run(arguments[0]);
+
+        """, list(checkedCards))
+
+        print(rates)
+
+        # =========================================================
+        # SUCCESS
+        # =========================================================
+
+        if isinstance(rates, dict):
+
+            status = rates.get("status")
+
+            # =====================================================
+            # SUCCESS
+            # =====================================================
+
+            if status == "SUCCESS":
+
+                checkedCards = set(
+                    rates.get("checkedCards", [])
+                )
+
+                departure = rates.get("departure")
+                arrival = rates.get("arrival")
+
+                FREIGHT = round(rates.get("freightTotal", 0), 1)
+                ORIGIN = round(rates.get("originTotal", 0), 1)
+                DESTINATION = round(rates.get("destinationTotal", 0) / 96, 1)
+
+                freightItems = rates.get("freightItems", [])
+                originItems = rates.get("originItems", [])
+                destinationItems = rates.get("destinationItems", [])
+
+                export = 0
+
+                total = round(
+                    FREIGHT + ORIGIN + export + DESTINATION,
+                    1
+                )
+
+                print("\n========================")
+                print("✅ FINAL DATA")
+                print("========================")
+
+                print("Departure :", departure)
+                print("Arrival :", arrival)
+
+                # =================================================
+                # FREIGHT
+                # =================================================
+
+                print("\n========================")
+                print("🚢 FREIGHT CHARGES")
+                print("========================")
+
+                for item in freightItems:
+
+                    print(
+                        f"{item['charge']} : {item['amount']}"
+                    )
+
+                print("TOTAL FREIGHT :", FREIGHT)
+
+                # =================================================
+                # ORIGIN
+                # =================================================
+
+                print("\n========================")
+                print("🏭 ORIGIN CHARGES")
+                print("========================")
+
+                for item in originItems:
+
+                    print(
+                        f"{item['charge']} : {item['amount']}"
+                    )
+
+                print("TOTAL ORIGIN :", ORIGIN)
+
+                # =================================================
+                # DESTINATION
+                # =================================================
+
+                print("\n========================")
+                print("🏁 DESTINATION CHARGES")
+                print("========================")
+
+                for item in destinationItems:
+
+                    print(
+                        f"{item['charge']} : {item['amount']}"
+                    )
+
+                print("TOTAL DESTINATION :", DESTINATION)
+
+                # =================================================
+                # GRAND TOTAL
+                # =================================================
+
+                print("\n========================")
+                print("💰 GRAND TOTAL")
+                print("========================")
+
+                print("TOTAL :", total)
+
+                # =================================================
+                # SAVE
+                # =================================================
+
+                data.append([
+
+                    today,
+                    "MAERSK",
+
+                    origin_port_name,
+                    destination_port_name,
+
+                    cont_size,
+                    20000,
+
+                    departure,
+                    arrival,
+
+                    FREIGHT,
+                    ORIGIN,
+                    export,
+                    DESTINATION,
+
+                    total,                
+
+                    ""
+                ])
+
+            # =====================================================
+            # NEXT PAGE
+            # =====================================================
+
+            elif status == "ALL_CARDS_CHECKED":
+
+                print("➡️ ALL PRICE DETAILS CHECKED")
+
+                next_clicked = driver.execute_script("""
+
+                async function sleep(ms){
+                    return new Promise(r => setTimeout(r, ms));
+                }
+
+                async function run(){
+
+                    function deepAll(selector, root=document){
+
+                        let results = [];
+
+                        try{
+                            results.push(...root.querySelectorAll(selector));
+                        }catch(e){}
+
+                        let all = [];
+
+                        try{
+                            all = root.querySelectorAll("*");
+                        }catch(e){}
+
+                        for(let el of all){
+
+                            if(el.shadowRoot){
+
+                                results.push(
+                                    ...deepAll(selector, el.shadowRoot)
+                                );
+                            }
+                        }
+
+                        return results;
+                    }
+
+                    // =============================================
+                    // FIND NEXT BUTTON
+                    // =============================================
+
+                    let nextBtn = null;
+
+                    let buttons = deepAll("mc-button");
+
+                    for(let b of buttons){
+
+                        let txt = (
+                            (b.getAttribute("label") || "") + " " +
+                            (b.textContent || "")
+                        ).toLowerCase();
+
+                        if(txt.includes("next")){
+
+                            nextBtn = b;
+                            break;
+                        }
+                    }
+
+                    if(!nextBtn){
+
+                        return "NO_NEXT_BUTTON";
+                    }
+
+                    // =============================================
+                    // DISABLED CHECK
+                    // =============================================
+
+                    let disabled = false;
+
+                    try{
+
+                        if(
+                            nextBtn.hasAttribute("disabled")
+                        ){
+                            disabled = true;
+                        }
+
+                        if(nextBtn.shadowRoot){
+
+                            let realBtn =
+                                nextBtn.shadowRoot.querySelector("button");
+
+                            if(realBtn && realBtn.disabled){
+
+                                disabled = true;
+                            }
+                        }
+
+                    }catch(e){}
+
+                    if(disabled){
+
+                        return "NO_MORE_PAGES";
+                    }
+
+                    // =============================================
+                    // CLICK NEXT
+                    // =============================================
+
+                    nextBtn.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center"
+                    });
+
+                    await sleep(2000);
+
+                    try{
+                        nextBtn.click();
+                    }
+                    catch(e){
+
+                        nextBtn.dispatchEvent(
+                            new MouseEvent("click",{
+                                bubbles:true,
+                                composed:true
+                            })
+                        );
+                    }
+
+                    await sleep(8000);
+
+                    return "NEXT_PAGE_CLICKED";
+                }
+
+                return run();
+
+                """)
+
+                print(next_clicked)
+
+                if next_clicked == "NEXT_PAGE_CLICKED":
+
+                    currentPage += 1
+
+                    checkedCards = set()
+
+                    time.sleep(5)
+
+                    continue
+
+                else:
+
+                    print("❌ ALL PAGES COMPLETED")
+                    break
+
+        # =========================================================
+        # NO CARDS
+        # =========================================================
+
+        elif rates == "NO_CARDS_FOUND":
+
+            print("❌ NO OFFER CARD FOUND")
+            break
+
+else:
+
+    print("❌ Spot and market rates NOT FOUND")
+
+    # **********************************************************
+    # SELECT TOMORROW
+    # **********************************************************
+
+    select_tomorrow_result = driver.execute_script("""
+    async function sleep(ms){
+        return new Promise(r => setTimeout(r, ms));
     }
 
-    let total = 0;
+    async function run(){
 
-    while(true){
+        function deepAll(selector, root=document){
 
-        let allBtns = deepAll("mc-button");
+            let results = [];
 
-        let btn = null;
+            try{
+                results.push(...root.querySelectorAll(selector));
+            }catch(e){}
 
-        for(let b of allBtns){
+            let all = [];
 
-            let txt = (
-                b.innerText ||
-                b.textContent ||
-                b.getAttribute("label") ||
-                ""
-            ).trim();
+            try{
+                all = root.querySelectorAll("*");
+            }catch(e){}
 
-            if(txt.includes("Search more sailing options")){
+            for(let el of all){
 
-                btn = b;
+                if(el.shadowRoot){
+
+                    results.push(...deepAll(selector, el.shadowRoot));
+                }
+            }
+
+            return results;
+        }
+
+        let selectTomorrowBtn = null;
+
+        let links = deepAll('a');
+
+        for(let link of links){
+
+            let text = (link.innerText || '').trim();
+
+            let cls = link.className || '';
+
+            if(
+                text.includes('Select tomorrow') ||
+                cls.includes('select-tomorrow-link')
+            ){
+
+                selectTomorrowBtn = link;
                 break;
             }
         }
 
-        if(!btn){
-
-            callback("DONE | TOTAL CLICKS = " + total);
-            return;
+        if(!selectTomorrowBtn){
+            return "❌ SELECT TOMORROW BUTTON NOT FOUND";
         }
 
-        try{
+        selectTomorrowBtn.scrollIntoView({
+            block:'center'
+        });
 
-            let realBtn = btn.shadowRoot.querySelector("button");
+        await sleep(1000);
 
-            realBtn.scrollIntoView({
-                behavior:"smooth",
-                block:"center"
-            });
+        selectTomorrowBtn.dispatchEvent(new MouseEvent('mouseover',{
+            bubbles:true,
+            composed:true
+        }));
 
-            await sleep(2000);
+        selectTomorrowBtn.dispatchEvent(new MouseEvent('mousedown',{
+            bubbles:true,
+            composed:true
+        }));
 
-            realBtn.click();
+        selectTomorrowBtn.dispatchEvent(new MouseEvent('mouseup',{
+            bubbles:true,
+            composed:true
+        }));
 
-            total++;
+        selectTomorrowBtn.dispatchEvent(new MouseEvent('click',{
+            bubbles:true,
+            composed:true
+        }));
 
-            console.log("CLICKED =>", total);
+        selectTomorrowBtn.click();
 
-            await sleep(8000);
+        await sleep(3000);
 
-        }catch(e){
-
-            callback("ERROR => " + e);
-            return;
-        }
+        return "✅ SELECT TOMORROW CLICKED";
     }
-}
 
-run();
+    return run();
+    """)
 
-""")
+    print(select_tomorrow_result)
 
-print(load_more_result)
+    # ==========================================================
+    # IF SELECT TOMORROW FAILED
+    # ==========================================================
 
-sailing_cards_length = driver.execute_script("""
+    if "NOT FOUND" in str(select_tomorrow_result):
 
-return document.querySelectorAll(
-    'article.new-sailings-card-article'
-).length;
+        print("❌ SELECT TOMORROW FAILED")
 
-""")
-
-print("TOTAL SAILING CARDS :", sailing_cards_length)
-
-# =========================================================
-# IF NO SAILING CARDS FOUND
-# =========================================================
-
-if sailing_cards_length == 0:
-
-    data.append([
-        today,
-        "MAERSK",
-        origin_port_name,
-        destination_port_name,
-        cont_size,
-        20000,
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "No Data"
-    ])
-
-# =========================================================
-# PROCESS ALL CARDS
-# =========================================================
-
-else:
-
-    for card_index in range(sailing_cards_length):
-
-        print(f"\n{'='*20} CARD {card_index + 1} {'='*20}")
-
-        # =========================================================
-        # GET SAILING CARD DATA
-        # =========================================================
-
-        sailing_data = driver.execute_script(f"""
-
-        function getText(el){{
-            return (el?.innerText || el?.textContent || '').trim();
-        }}
-
-        let card = document.querySelectorAll(
-            'article.new-sailings-card-article'
-        )[{card_index}];
-
-        if(!card){{
-            return null;
-        }}
-
-        let data = {{
-            departure : '',
-            arrival : '',
-            transit_time : '',
-            vessel : '',
-            voyage : '',
-            gate_in_deadline : '',
-            price : ''
-        }};
-
-        try{{
-
-            let depEl = card.querySelector(
-                '.new-sailings-group-header__departure-section time'
-            );
-
-            data.departure = getText(depEl);
-
-            let arrEl = card.querySelector(
-                '.new-sailings-group-header__arrival-section time'
-            );
-
-            data.arrival = getText(arrEl);
-
-            let transitEl = card.querySelector(
-                '[data-test="transit-time-display"] time'
-            );
-
-            data.transit_time = getText(transitEl);
-
-            let gateEl = card.querySelector(
-                '.new-sailings-group-header__gate-section time'
-            );
-
-            data.gate_in_deadline = getText(gateEl);
-
-            let vesselSection = card.querySelector(
-                '.new-sailings-group-header__vessel-section .new-sailings-group-header__value'
-            );
-
-            if(vesselSection){{
-
-                let fullText = getText(vesselSection);
-
-                data.vessel = fullText.split('/')[0].trim();
-
-                let voyageEl = vesselSection.querySelector(
-                    '.new-sailings-group-header__voyage'
-                );
-
-                data.voyage = getText(voyageEl)
-                    .replace('/', '')
-                    .trim();
-            }}
-
-            let priceEl = card.querySelector(
-                '.product-offer-price .mds-headline--small'
-            );
-
-            data.price = getText(priceEl);
-
-        }}catch(e){{
-            console.log(e);
-        }}
-
-        return data;
-
-        """)
-
-        print(sailing_data)
-
-        if not sailing_data:
-            print("No card data found")
-            continue
-
-        # =========================================================
-        # DATE FORMAT
-        # =========================================================
-
-        dep_raw = sailing_data["departure"].split(",")[0].strip()
-        arr_raw = sailing_data["arrival"].split(",")[0].strip()
-
-        try:
-
-            dep_date = datetime.strptime(dep_raw, "%d %b %Y")
-            arr_date = datetime.strptime(arr_raw, "%d %b %Y")
-
-            start_date = dep_date.strftime("%d-%b-%Y")
-            end_date = arr_date.strftime("%d-%b-%Y")
-
-        except Exception as e:
-
-            print("❌ Date parse error :", e)
-
-            start_date = ""
-            end_date = ""
-
-        # =========================================================
-        # BASIC DATA
-        # =========================================================
-
-        print("START DATE        :", start_date)
-        print("END DATE          :", end_date)
-        print("TRANSIT TIME      :", sailing_data["transit_time"])
-        print("VESSEL            :", sailing_data["vessel"])
-        print("VOYAGE            :", sailing_data["voyage"])
-        print("GATE IN DEADLINE  :", sailing_data["gate_in_deadline"])
-
-        price_text = sailing_data["price"].strip()
-
-        parts = price_text.split()
-
-        currency = parts[0] if len(parts) > 0 else ""
-        amount = int(float(parts[1])) if len(parts) > 1 else 0
-
-        print("AMOUNT            :", amount)
-        print("PRICE             :", sailing_data["price"])
-
-        # =========================================================
-        # CLICK PRICE BREAKDOWN
-        # =========================================================
-        if amount <= 0:
-            print("Amount not found, skipping card")
-            continue
-            
-        click_result = driver.execute_async_script(f"""
-
-        const callback = arguments[arguments.length - 1];
-
-        async function sleep(ms){{
-            return new Promise(r => setTimeout(r, ms));
-        }}
-
-        async function run(){{
-
-            function deepAll(selector, root=document){{
-
-                let results = [];
-
-                try{{
-                    results.push(...root.querySelectorAll(selector));
-                }}catch(e){{}}
-
-                let all = [];
-
-                try{{
-                    all = root.querySelectorAll("*");
-                }}catch(e){{}}
-
-                for(let el of all){{
-                    if(el.shadowRoot){{
-                        results.push(...deepAll(selector, el.shadowRoot));
-                    }}
-                }}
-
-                return results;
-            }}
-
-            let cards = document.querySelectorAll(
-                'article.new-sailings-card-article'
-            );
-
-            let card = cards[{card_index}];
-
-            let targetBtn = null;
-
-            let buttons = deepAll('mc-button', card);
-
-            for(let btn of buttons){{
-
-                let txt = "";
-
-                try{{
-                    txt = (
-                        btn.shadowRoot
-                        ?.querySelector("button")
-                        ?.innerText || ""
-                    ).trim();
-                }}catch(e){{}}
-
-                let hostText = (
-                    btn.innerText ||
-                    btn.textContent ||
-                    ""
-                ).trim();
-
-                if(
-                    txt.includes('Price breakdown') ||
-                    hostText.includes('Price breakdown')
-                ){{
-                    targetBtn = btn;
-                    break;
-                }}
-            }}
-
-            if(!targetBtn){{
-                callback("❌ BUTTON NOT FOUND");
-                return;
-            }}
-
-            try{{
-
-                let realBtn =
-                    targetBtn.shadowRoot.querySelector("button");
-
-                realBtn.scrollIntoView({{
-                    block:'center'
-                }});
-
-                await sleep(1000);
-
-                realBtn.click();
-
-                await sleep(3000);
-
-                callback("✅ CLICKED");
-
-            }}catch(e){{
-                callback("❌ ERROR => " + e);
-            }}
-        }}
-
-        run();
-
-        """)
-
-        print("\nPRICE BREAKDOWN CLICK :", click_result)
-
-        time.sleep(2)
-
-        # =========================================================
-        # GET PRICE BREAKDOWN TABLE DATA
-        # =========================================================
-
-        price_breakdown_data = driver.execute_script("""
-
-        function getText(el){
-            return (el?.innerText || el?.textContent || '').trim();
-        }
-
-        function toNumber(val){
-
-            if(!val) return 0;
-
-            val = val.replace(/,/g,'').trim();
-
-            // remove currency text if present
-            val = val.replace(/[A-Z]{3}/g,'');
-
-            let num = parseFloat(val);
-
-            return isNaN(num) ? 0 : num;
-        }
-
-        function findElementDeep(selector, root=document){
-
-            try{
-
-                let el = root.querySelector(selector);
-
-                if(el) return el;
-
-                let all = root.querySelectorAll('*');
-
-                for(let node of all){
-
-                    if(node.shadowRoot){
-
-                        let found = findElementDeep(
-                            selector,
-                            node.shadowRoot
-                        );
-
-                        if(found) return found;
-                    }
-                }
-
-            }catch(e){}
-
-            return null;
-        }
-
-        let result = {
-            freight_total : 0,
-            origin_total : 0,
-            destination_total : 0,
-            grand_total : 0,
-            rows : []
-        };
-
-        try{
-
-            // deep search inside shadow DOM
-            let table = findElementDeep('.mds-table table');
-
-            if(!table){
-
-                return {
-                    error : 'TABLE NOT FOUND'
-                };
-            }
-
-            let rows = table.querySelectorAll('tbody tr');
-
-            let currentSection = '';
-
-            rows.forEach(row => {
-
-                let tds = row.querySelectorAll('td');
-
-                if(tds.length < 6) return;
-
-                let chargeName = getText(tds[0]);
-                let totalPrice = getText(tds[5]);
-
-                // section headers
-                if(chargeName === 'Origin charges'){
-                    currentSection = 'origin';
-                    return;
-                }
-
-                if(chargeName === 'Destination charges'){
-                    currentSection = 'destination';
-                    return;
-                }
-
-                let amount = toNumber(totalPrice);
-
-                // save row details
-                result.rows.push({
-                    section : currentSection || 'freight',
-                    charge_name : chargeName,
-                    amount : amount
-                });
-
-                // totals
-                if(currentSection === ''){
-                    result.freight_total += amount;
-                }
-
-                else if(currentSection === 'origin'){
-                    result.origin_total += amount;
-                }
-
-                else if(currentSection === 'destination'){
-                    result.destination_total += amount;
-                }
-
-            });
-
-            result.grand_total =
-                result.freight_total +
-                result.origin_total +
-                result.destination_total;
-
-        }catch(e){
-
-            result.error = e.toString();
-        }
-
-        return result;
-
-        """)
-
-       
-        print(price_breakdown_data)
-        # =========================================================
-        # SAVE DATA
-        # =========================================================
-
-        if "freight_total" in price_breakdown_data:
-
-            print("\n========== PRICE BREAKDOWN ==========")
-            print("FREIGHT TOTAL     :", price_breakdown_data["freight_total"])
-            print("ORIGIN TOTAL      :", price_breakdown_data["origin_total"])
-            print("DESTINATION TOTAL :", price_breakdown_data["destination_total"])
-            FREIGHT = round(price_breakdown_data["freight_total"],1)
-            ORIGIN = round(price_breakdown_data["origin_total"], 1)
-            DESTINATION = round(price_breakdown_data["destination_total"] / 96, 1)
-            export = 0
-            total = round(FREIGHT + ORIGIN + DESTINATION, 1)
-        else:
-            print("❌ PRICE BREAKDOWN NOT FOUND")
-            FREIGHT = 0
-            ORIGIN = 0
-            DESTINATION = 0
-            export = 0
-            total = 0
-            total = round(FREIGHT + ORIGIN + DESTINATION, 1)
         data.append([
             today,
             "MAERSK",
@@ -1902,15 +1993,480 @@ else:
             destination_port_name,
             cont_size,
             20000,
-            start_date,
-            end_date,
-            FREIGHT,
-            ORIGIN,
-            export,
-            DESTINATION,
-            total,
-            ""
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "No Data"
         ])
+
+    # ==========================================================
+    # CONTINUE FLOW
+    # ==========================================================
+
+    else:
+
+        time.sleep(10)
+
+        # **********************************************************
+        # CONTINUE BUTTON
+        # **********************************************************
+
+        continue_result = driver.execute_script("""
+
+        async function sleep(ms){
+            return new Promise(r => setTimeout(r, ms));
+        }
+
+        async function run(){
+
+            function deepQuery(selector){
+
+                function search(root){
+
+                    let el = root.querySelector(selector);
+
+                    if(el) return el;
+
+                    let all = root.querySelectorAll("*");
+
+                    for(let node of all){
+
+                        if(node.shadowRoot){
+
+                            let found = search(node.shadowRoot);
+
+                            if(found) return found;
+                        }
+                    }
+
+                    return null;
+                }
+
+                return search(document);
+            }
+
+            let mcBtn = deepQuery("#od3cpContinueButton");
+
+            if(!mcBtn)
+                return "❌ MC BUTTON NOT FOUND";
+
+            let realBtn = null;
+
+            if(mcBtn.shadowRoot){
+                realBtn = mcBtn.shadowRoot.querySelector("button");
+            }
+
+            if(!realBtn)
+                return "❌ INNER BUTTON NOT FOUND";
+
+            mcBtn.disabled = false;
+            realBtn.disabled = false;
+
+            mcBtn.removeAttribute("disabled");
+            realBtn.removeAttribute("disabled");
+
+            realBtn.style.pointerEvents = "auto";
+            realBtn.style.opacity = "1";
+            realBtn.style.visibility = "visible";
+
+            realBtn.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+
+            await sleep(1500);
+
+            let events = [
+                "mouseover",
+                "mouseenter",
+                "pointerdown",
+                "mousedown",
+                "focus",
+                "pointerup",
+                "mouseup",
+                "click"
+            ];
+
+            for(let ev of events){
+
+                realBtn.dispatchEvent(
+                    new MouseEvent(ev,{
+                        bubbles:true,
+                        cancelable:true,
+                        composed:true,
+                        view:window
+                    })
+                );
+
+                await sleep(100);
+            }
+
+            realBtn.click();
+
+            await sleep(3000);
+
+            return {
+                status : "✅ CONTINUE BUTTON CLICKED",
+                currentUrl : location.href,
+                buttonText : realBtn.innerText,
+                disabled : realBtn.disabled
+            };
+        }
+
+        return run();
+        """)
+
+        print(continue_result)
+
+        time.sleep(10)
+
+        # **********************************************************
+        # LOAD MORE SAILINGS
+        # **********************************************************
+
+        driver.set_script_timeout(300)
+
+        load_more_result = driver.execute_async_script("""
+
+        const callback = arguments[arguments.length - 1];
+
+        async function sleep(ms){
+            return new Promise(r => setTimeout(r, ms));
+        }
+
+        async function run(){
+
+            function deepAll(selector, root=document){
+
+                let results = [];
+
+                try{
+                    results.push(...root.querySelectorAll(selector));
+                }catch(e){}
+
+                let els = [];
+
+                try{
+                    els = root.querySelectorAll("*");
+                }catch(e){}
+
+                for(let el of els){
+
+                    if(el.shadowRoot){
+                        results.push(...deepAll(selector, el.shadowRoot));
+                    }
+                }
+
+                return results;
+            }
+
+            let total = 0;
+
+            while(true){
+
+                let allBtns = deepAll("mc-button");
+
+                let btn = null;
+
+                for(let b of allBtns){
+
+                    let txt = (
+                        b.innerText ||
+                        b.textContent ||
+                        b.getAttribute("label") ||
+                        ""
+                    ).trim();
+
+                    if(txt.includes("Search more sailing options")){
+
+                        btn = b;
+                        break;
+                    }
+                }
+
+                if(!btn){
+
+                    callback("DONE | TOTAL CLICKS = " + total);
+                    return;
+                }
+
+                try{
+
+                    let realBtn =
+                        btn.shadowRoot.querySelector("button");
+
+                    realBtn.scrollIntoView({
+                        behavior:"smooth",
+                        block:"center"
+                    });
+
+                    await sleep(2000);
+
+                    realBtn.click();
+
+                    total++;
+
+                    console.log("CLICKED =>", total);
+
+                    await sleep(8000);
+
+                }catch(e){
+
+                    callback("ERROR => " + e);
+                    return;
+                }
+            }
+        }
+
+        run();
+        """)
+
+        print(load_more_result)
+
+        # **********************************************************
+        # TOTAL CARDS
+        # **********************************************************
+
+        sailing_cards_length = driver.execute_script("""
+
+        return document.querySelectorAll(
+            'article.new-sailings-card-article'
+        ).length;
+
+        """)
+
+        print(
+            "TOTAL SAILING CARDS :",
+            sailing_cards_length
+        )
+
+        # ==========================================================
+        # NO CARDS
+        # ==========================================================
+
+        if sailing_cards_length == 0:
+
+            data.append([
+                today,
+                "MAERSK",
+                origin_port_name,
+                destination_port_name,
+                cont_size,
+                20000,
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "No Data"
+            ])
+
+        # ==========================================================
+        # PROCESS ALL CARDS
+        # ==========================================================
+
+        else:
+
+            for card_index in range(sailing_cards_length):
+
+                print(
+                    f"\n{'='*20} "
+                    f"CARD {card_index + 1} "
+                    f"{'='*20}"
+                )
+
+                # **************************************************
+                # YOUR EXISTING CARD LOGIC
+                # **************************************************
+
+                sailing_data = driver.execute_script(f"""
+                // YOUR EXISTING JS
+                """)
+
+                print(sailing_data)
+
+                if not sailing_data:
+
+                    print("❌ No card data found")
+                    continue
+
+                # **************************************************
+                # DATE FORMAT
+                # **************************************************
+
+                dep_raw = (
+                    sailing_data["departure"]
+                    .split(",")[0]
+                    .strip()
+                )
+
+                arr_raw = (
+                    sailing_data["arrival"]
+                    .split(",")[0]
+                    .strip()
+                )
+
+                try:
+
+                    dep_date = datetime.strptime(
+                        dep_raw,
+                        "%d %b %Y"
+                    )
+
+                    arr_date = datetime.strptime(
+                        arr_raw,
+                        "%d %b %Y"
+                    )
+
+                    start_date = dep_date.strftime(
+                        "%d-%b-%Y"
+                    )
+
+                    end_date = arr_date.strftime(
+                        "%d-%b-%Y"
+                    )
+
+                except Exception as e:
+
+                    print("❌ Date parse error :", e)
+
+                    start_date = ""
+                    end_date = ""
+
+                # **************************************************
+                # PRICE
+                # **************************************************
+
+                price_text = (
+                    sailing_data["price"].strip()
+                )
+
+                parts = price_text.split()
+
+                currency = (
+                    parts[0]
+                    if len(parts) > 0
+                    else ""
+                )
+
+                amount = (
+                    int(float(parts[1]))
+                    if len(parts) > 1
+                    else 0
+                )
+
+                print("AMOUNT :", amount)
+
+                if amount <= 0:
+
+                    print(
+                        "❌ Amount not found"
+                    )
+
+                    continue
+
+                # **************************************************
+                # PRICE BREAKDOWN CLICK
+                # **************************************************
+
+                click_result = driver.execute_async_script(f"""
+                // YOUR EXISTING JS
+                """)
+
+                print(
+                    "\nPRICE BREAKDOWN CLICK :",
+                    click_result
+                )
+
+                time.sleep(2)
+
+                # **************************************************
+                # PRICE BREAKDOWN DATA
+                # **************************************************
+
+                price_breakdown_data = driver.execute_script("""
+                // YOUR EXISTING JS
+                """)
+
+                print(price_breakdown_data)
+
+                # **************************************************
+                # TOTALS
+                # **************************************************
+
+                if "freight_total" in price_breakdown_data:
+
+                    FREIGHT = round(
+                        price_breakdown_data[
+                            "freight_total"
+                        ],
+                        1
+                    )
+
+                    ORIGIN = round(
+                        price_breakdown_data[
+                            "origin_total"
+                        ],
+                        1
+                    )
+
+                    DESTINATION = round(
+                        price_breakdown_data[
+                            "destination_total"
+                        ] / 96,
+                        1
+                    )
+
+                    export = 0
+
+                    total = round(
+                        FREIGHT +
+                        ORIGIN +
+                        DESTINATION,
+                        1
+                    )
+
+                else:
+
+                    FREIGHT = 0
+                    ORIGIN = 0
+                    DESTINATION = 0
+                    export = 0
+                    total = 0
+
+                # **************************************************
+                # SAVE DATA
+                # **************************************************
+
+                data.append([
+
+                    today,
+                    "MAERSK",
+
+                    origin_port_name,
+                    destination_port_name,
+
+                    cont_size,
+                    20000,
+
+                    start_date,
+                    end_date,
+
+                    FREIGHT,
+                    ORIGIN,
+                    export,
+                    DESTINATION,
+
+                    total,
+
+                    ""
+                ])
 
 # =========================================================
 # SAVE EXCEL

@@ -72,14 +72,6 @@ def import_excel(request):
 def success_page(request):
     return render(request, 'success.html')    
 
-from datetime import datetime, date
-import pandas as pd
-from django.core.paginator import Paginator
-from django.shortcuts import render
-from django.http import HttpResponse
-from .models import ShippingRate
-
-
 # =========================
 # COMMON FILTER FUNCTION
 # =========================
@@ -119,19 +111,10 @@ def get_filtered_queryset(request):
 
     return rates_list
 
-
 # =========================
 # CHEAPEST LOGIC (REUSABLE)
 # =========================
-from datetime import datetime, date
-from django.core.paginator import Paginator
-from django.shortcuts import render
-from .models import ShippingRate
 
-
-# =========================
-# CHEAPEST LOGIC (REUSABLE)
-# =========================
 def apply_cheapest_filter(rates_list):
     cheapest_map = {}
 
@@ -233,7 +216,7 @@ def show_rates(request):
     # =========================
     # PAGINATION
     # =========================
-    paginator = Paginator(rates_list, 25)
+    paginator = Paginator(rates_list, 20)
     page_number = request.GET.get('page')
     rates = paginator.get_page(page_number)
 
@@ -275,11 +258,7 @@ def show_rates(request):
 # =========================
 # DOWNLOAD EXCEL VIEW
 # =========================
-from datetime import datetime, date
 from django.http import HttpResponse
-import pandas as pd
-from .models import ShippingRate
-
 
 def download_excel(request):
 
@@ -525,136 +504,428 @@ def get_ports(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-# =========================
-# RUN SCRAPER
-# =========================
-from django.http import JsonResponse
-import pandas as pd
+# ================= IMPORT =================
+
 import subprocess
+import threading
 import os
 import time
+import json
+import pandas as pd
 
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+
+# ================= GLOBAL =================
+
+RUNNING_SCRAPERS = {}
+
+PENDING_SCRAPERS = []
+
+CURRENT_RUNNING = None
+
+STOPPED_SCRAPERS = set()
+
+# COMPLETE HISTORY
+COMPLETED_SCRAPERS = []
+
+
+# ================= RUN SCRAPER =================
+
+@csrf_exempt
 def run_scraper(request):
-    if request.method == "POST":
 
-        shipping_lines = request.POST.getlist("shipping_line[]")
-        origins = request.POST.getlist("origin[]")
-        destinations = request.POST.getlist("destination[]")
-        containers = request.POST.getlist("container[]")
+    global RUNNING_SCRAPERS
+    global PENDING_SCRAPERS
+    global CURRENT_RUNNING
+    global STOPPED_SCRAPERS
+    global COMPLETED_SCRAPERS
 
-        print("\n===== DEBUG INPUT =====", flush=True)
-        print("LINES:", shipping_lines, flush=True)
-        print("ORIGINS:", origins, flush=True)
-        print("DESTINATIONS:", destinations, flush=True)
-        print("CONTAINERS:", containers, flush=True)
+    if request.method != "POST":
 
-        # ✅ VALIDATION
-        if not shipping_lines or not containers or not origins or not destinations:
-            return JsonResponse({
-                "status": "error",
-                "msg": "No data selected"
-            })
+        return JsonResponse({
+            "status": "error",
+            "msg": "Invalid Request"
+        })
+
+    shipping_lines = request.POST.getlist("shipping_line[]")
+    origins = request.POST.getlist("origin[]")
+    destinations = request.POST.getlist("destination[]")
+    containers = request.POST.getlist("container[]")
+
+    if not shipping_lines:
+
+        return JsonResponse({
+            "status": "error",
+            "msg": "No Shipping Line Selected"
+        })
+
+    # ================= RESET =================
+
+    STOPPED_SCRAPERS.clear()
+
+    COMPLETED_SCRAPERS.clear()
+
+    # ================= SAVE PENDING =================
+
+    PENDING_SCRAPERS = shipping_lines.copy()
+
+    def scraper_worker():
+
+        global CURRENT_RUNNING
+        global PENDING_SCRAPERS
+        global STOPPED_SCRAPERS
+        global COMPLETED_SCRAPERS
 
         try:
-            port_df = pd.read_excel(file_path_shipping, sheet_name="port")
-            size_df = pd.read_excel(file_path_shipping, sheet_name="size")
 
-            port_df.columns = port_df.columns.str.strip().str.lower()
-            size_df.columns = size_df.columns.str.strip().str.lower()
+            # ================= READ EXCEL =================
 
-            # CLEAN
-            for col in port_df.columns:
-                port_df[col] = port_df[col].astype(str).str.strip()
+            port_df = pd.read_excel(
+                file_path_shipping,
+                sheet_name="port"
+            )
 
-            for col in size_df.columns:
-                size_df[col] = size_df[col].astype(str).str.strip()
+            size_df = pd.read_excel(
+                file_path_shipping,
+                sheet_name="size"
+            )
 
-            # SIZE MAP
-            size_mapping = {}
-            for _, row in size_df.iterrows():
-                key = row["size"]
-                size_mapping[key] = {}
+            port_df.columns = (
+                port_df.columns.str.strip().str.lower()
+            )
 
-                for col in COLUMN_MAP.values():
-                    val = row.get(col)
-                    if pd.notna(val):
-                        size_mapping[key][col] = str(val).strip()
+            size_df.columns = (
+                size_df.columns.str.strip().str.lower()
+            )
 
-            # ✅ LOOP
+            # ================= LOOP SHIPPING LINES =================
+
             for line in shipping_lines:
+
                 try:
+
+                    # ================= STOP CHECK =================
+
+                    if line in STOPPED_SCRAPERS:
+
+                        if line in PENDING_SCRAPERS:
+                            PENDING_SCRAPERS.remove(line)
+
+                        continue
+
+                    # ================= CURRENT RUNNING =================
+
+                    CURRENT_RUNNING = line
+
+                    # REMOVE FROM PENDING
+                    if line in PENDING_SCRAPERS:
+                        PENDING_SCRAPERS.remove(line)
+
+                    # ================= VALUES =================
+
                     origin_name = origins[0]
+
                     dest_name = destinations[0]
+
                     container = containers[0]
 
-                    print(f"\nSTARTING: {line}", flush=True)
+                    # ================= COLUMN =================
 
                     column = COLUMN_MAP.get(line)
+
                     if not column:
-                        print(f"Column not found for {line}", flush=True)
+
+                        print(f"Column not found for {line}")
+
+                        CURRENT_RUNNING = None
+
                         continue
 
                     column = column.lower()
 
-                    origin_row = port_df[port_df["port"] == origin_name]
-                    dest_row = port_df[port_df["port"] == dest_name]
+                    # ================= PORT ROW =================
+
+                    origin_row = port_df[
+                        port_df["port"] == origin_name
+                    ]
+
+                    dest_row = port_df[
+                        port_df["port"] == dest_name
+                    ]
 
                     if origin_row.empty or dest_row.empty:
-                        print("Port not found", flush=True)
+
+                        print(f"Port mapping not found for {line}")
+
+                        CURRENT_RUNNING = None
+
                         continue
 
+                    # ================= PORT CODE =================
+
                     origin_code = origin_row.iloc[0][column]
+
                     dest_code = dest_row.iloc[0][column]
 
-                    final_container = size_mapping.get(container, {}).get(column, container)
+                    # ================= CONTAINER MAPPING =================
+
+                    container_row = size_df[
+                        size_df["size"] == container
+                    ]
+
+                    if container_row.empty:
+
+                        print(
+                            f"Container mapping not found for {container}"
+                        )
+
+                        CURRENT_RUNNING = None
+
+                        continue
+
+                    final_container = container_row.iloc[0][column]
+
+                    print(
+                        f"{line} -> {container} => {final_container}"
+                    )
+
+                    # ================= SCRIPT PATH =================
 
                     script_path = SCRAPERS.get(line)
 
-                    if script_path and os.path.exists(script_path):
+                    if (
+                        not script_path
+                        or
+                        not os.path.exists(script_path)
+                    ):
 
-                        # ✅ LIVE OUTPUT (IMPORTANT CHANGE)
-                        subprocess.run(
-                            [
-                                "python",
-                                script_path,
-                                str(origin_code),
-                                str(origin_name),
-                                str(dest_code),
-                                str(dest_name),
-                                str(final_container)
-                            ],
-                            text=True
+                        print(f"Script not found for {line}")
+
+                        CURRENT_RUNNING = None
+
+                        continue
+
+                    # ================= START PROCESS =================
+
+                    process = subprocess.Popen(
+
+                        [
+                            "python",
+                            script_path,
+                            str(origin_code),
+                            str(origin_name),
+                            str(dest_code),
+                            str(dest_name),
+                            str(final_container)
+                        ]
+
+                    )
+
+                    RUNNING_SCRAPERS[line] = process
+
+                    # ================= WAIT =================
+
+                    try:
+
+                        return_code = process.wait()
+
+                        print(
+                            f"{line} finished with code {return_code}"
                         )
 
-                        print(f"COMPLETED: {line}", flush=True)
+                    finally:
 
-                        time.sleep(2)
+                        # REMOVE RUNNING
+                        if line in RUNNING_SCRAPERS:
+                            del RUNNING_SCRAPERS[line]
 
-                    else:
-                        print(f"Script not found for {line}", flush=True)
+                        # COMPLETED
+                        if (
+                            process.returncode == 0
+                            and
+                            line not in STOPPED_SCRAPERS
+                        ):
+
+                            COMPLETED_SCRAPERS.append(line)
+
+                        CURRENT_RUNNING = None
+
+                    # ================= NEXT DELAY =================
+
+                    time.sleep(2)
 
                 except Exception as err:
-                    print(f"Exception ({line}): {str(err)}", flush=True)
+
+                    print(f"{line} Error: {err}")
+
+                    CURRENT_RUNNING = None
+
                     continue
 
         except Exception as e:
-            print("Excel Error:", str(e), flush=True)
-            return JsonResponse({
-                "status": "error",
-                "msg": f"Excel Error: {str(e)}"
-            })
 
-        return redirect('rates')
+            print(f"Worker Error: {e}")
+
+            CURRENT_RUNNING = None
+
+    # ================= THREAD START =================
+
+    threading.Thread(
+        target=scraper_worker,
+        daemon=True
+    ).start()
 
     return JsonResponse({
-        "status": "error",
-        "msg": "Invalid request"
+
+        "status": "success",
+
+        "msg": "Scraper Started Successfully"
+
     })
 
-from django.http import JsonResponse
-from django.shortcuts import render
-import os
-import subprocess
+# ================= GET RUNNING SCRAPERS =================
+
+def get_running_scrapers(request):
+
+    global RUNNING_SCRAPERS
+    global CURRENT_RUNNING
+    global PENDING_SCRAPERS
+    global COMPLETED_SCRAPERS
+
+    active = []
+
+    remove_keys = []
+
+    for line, process in RUNNING_SCRAPERS.items():
+
+        if process.poll() is None:
+
+            active.append(line)
+
+        else:
+
+            remove_keys.append(line)
+
+    for k in remove_keys:
+
+        del RUNNING_SCRAPERS[k]
+
+    return JsonResponse({
+
+        "running_scrapers": active,
+
+        "current_running": CURRENT_RUNNING,
+
+        "pending_scrapers": PENDING_SCRAPERS,
+
+        "completed_scrapers": COMPLETED_SCRAPERS
+
+    })
+
+
+# ================= STOP SELECTED =================
+
+@csrf_exempt
+def stop_selected_scrapers(request):
+
+    global RUNNING_SCRAPERS
+    global CURRENT_RUNNING
+    global PENDING_SCRAPERS
+    global STOPPED_SCRAPERS
+
+    if request.method == "POST":
+
+        data = json.loads(request.body)
+
+        shipping_lines = data.get(
+            "shipping_lines",
+            []
+        )
+
+        stopped = []
+
+        for line in shipping_lines:
+
+            # MARK STOPPED
+            STOPPED_SCRAPERS.add(line)
+
+            # REMOVE FROM PENDING
+            if line in PENDING_SCRAPERS:
+                PENDING_SCRAPERS.remove(line)
+
+            process = RUNNING_SCRAPERS.get(line)
+
+            if process:
+
+                try:
+
+                    process.kill()
+
+                    stopped.append(line)
+
+                    del RUNNING_SCRAPERS[line]
+
+                    if line == CURRENT_RUNNING:
+                        CURRENT_RUNNING = None
+
+                except Exception as e:
+
+                    print(e)
+
+        return JsonResponse({
+            "status": "success",
+            "msg": f"Stopped: {', '.join(shipping_lines)}"
+        })
+
+
+# ================= STOP ALL =================
+
+@csrf_exempt
+def stop_all_scrapers(request):
+
+    global RUNNING_SCRAPERS
+    global CURRENT_RUNNING
+    global PENDING_SCRAPERS
+    global STOPPED_SCRAPERS
+
+    STOPPED_SCRAPERS.update(PENDING_SCRAPERS)
+
+    for line in list(RUNNING_SCRAPERS.keys()):
+
+        STOPPED_SCRAPERS.add(line)
+
+    stopped = []
+
+    for line, process in list(RUNNING_SCRAPERS.items()):
+
+        try:
+
+            process.kill()
+
+            stopped.append(line)
+
+        except Exception as e:
+
+            print(e)
+
+    RUNNING_SCRAPERS.clear()
+
+    PENDING_SCRAPERS.clear()
+
+    CURRENT_RUNNING = None
+
+    return JsonResponse({
+        "status": "success",
+        "msg": "All Scrapers Stopped"
+    })
+
+
+
+
+
+#****************************************************************
 
 TRACK_DIR = os.path.join(BASE_DIR, "trackers")
 
@@ -721,8 +992,8 @@ def run_tracker(request):
                     })
 
         # ✅ SHOW RESULT PAGE
-        return render(request, "success.html", {
+        return render(request, "tracker.html", {
             "results": results
         })
 
-    return render(request, "success.html")
+    return render(request, "tracker.html")

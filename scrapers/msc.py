@@ -8,13 +8,14 @@ from selenium.webdriver.common.action_chains import ActionChains
 import pandas as pd
 from selenium.webdriver.common.keys import Keys
 import sys
-sys.stdout.reconfigure(encoding='utf-8')
 import os
-# ================= FILE =================
+from selenium.common.exceptions import *
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))            
 file_path = os.path.join(BASE_DIR, "global", "rates.xlsx")
 print(BASE_DIR)
 print(file_path)
+
 columns = [
     "date",
     "ship_line",
@@ -32,45 +33,123 @@ columns = [
     "remarks"
 ]
 data = []
-# -------- DRIVER SETUP --------
+
+# =========================================================
+# DRIVER SETUP
+# =========================================================
 options = uc.ChromeOptions()
 options.add_argument("--start-maximized")
 options.add_argument("--disable-blink-features=AutomationControlled")
-
-driver = uc.Chrome(options=options, version_main=148)
-
-# optional (usually not needed with UC)
-driver.execute_script(
-    "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
-)
-
+driver = uc.Chrome(options=options, version_main=148, use_subprocess=True)
 wait = WebDriverWait(driver, 30)
 
-# -------- OPEN LOGIN PAGE --------
-driver.get("https://www.mymsc.com/myMSC/")
-# -------- LOGIN --------
-time.sleep(10) 
+# =========================================================
+# OPEN WEBSITE
+# =========================================================
+driver.get("https://www.mymsc.com")
+driver.maximize_window()
+time.sleep(8)
 
+# =========================================================
+# ACCEPT COOKIES
+# =========================================================
 try:
-    allowall=driver.find_element(By.CSS_SELECTOR, "button[id='onetrust-accept-btn-handler']")
-    allowall.click()
+
+    allow_btn = driver.find_element(
+        By.CSS_SELECTOR,
+        "button#onetrust-accept-btn-handler"
+    )
+
+    allow_btn.click()
+
+    print("Cookies Accepted")
+
+    time.sleep(2)
+
 except:
-    pass
+
+    print("Cookies Popup Not Found")
+
+
+# =========================================================
+# EMAIL
+# =========================================================
+
+email_input = wait.until(
+    EC.presence_of_element_located((
+        By.CSS_SELECTOR,
+        "input[type='email']"
+    ))
+)
+
+email_input.clear()
+
+email_input.send_keys(
+    "sales@tanuimpex.com"
+)
+
+print("Email Entered")
+
+time.sleep(2)
+
+
+# =========================================================
+# NEXT BUTTON
+# =========================================================
+
+next_btn = wait.until(
+    EC.element_to_be_clickable((
+        By.CSS_SELECTOR,
+        "button[type='button']"
+    ))
+)
+
+next_btn.click()
+
+print("Next Button Clicked")
 
 time.sleep(5)
-username=driver.find_element(By.CSS_SELECTOR, "input[type='email']")
-username.send_keys("sales@tanuimpex.com")
+
+
+# =========================================================
+# PASSWORD
+# =========================================================
+
+password_input = wait.until(
+    EC.presence_of_element_located((
+        By.CSS_SELECTOR,
+        "input[type='password']"
+    ))
+)
+
+password_input.clear()
+
+password_input.send_keys(
+    "E@Lzy$-Sij82V2*"
+)
+
+print("Password Entered")
+
 time.sleep(2)
-next=driver.find_element(By.CSS_SELECTOR, "button[type='button']")
-time.sleep(2)
-next.click()
-time.sleep(20)
-password=driver.find_element(By.CSS_SELECTOR, "input[type='password']")
-password.send_keys("E@Lzy$-Sij82V2*")
-time.sleep(5)
-login=driver.find_element(By.CSS_SELECTOR, "button[id='next']")
-login.click()
-time.sleep(10)
+
+
+# =========================================================
+# LOGIN BUTTON
+# =========================================================
+
+login_btn = wait.until(
+    EC.element_to_be_clickable((
+        By.CSS_SELECTOR,
+        "button#next"
+    ))
+)
+
+login_btn.click()
+
+print("LOGIN COMPLETED")
+time.sleep(15)
+
+print("READY FOR SCRAPING")
 
 driver.execute_script("window.location.href='/instantquote'")
 time.sleep(10)
@@ -80,8 +159,7 @@ origin_port_name = sys.argv[2]
 destination_port_code = sys.argv[3]
 destination_port_name = sys.argv[4]
 container_size = sys.argv[5]
-
-print(origin_port_code, destination_port_code)
+print("Received arguments:", origin_port_code, origin_port_name, destination_port_code, destination_port_name, container_size)
 
 container_map = {
     "20DV": "1 × 20' ST",
@@ -125,7 +203,7 @@ for i in range(len(all_cont_size)):   # total 3 containers
         if actual_size == container_size:
             if not checkbox.is_selected():
                 driver.execute_script("arguments[0].click();", label)
-                print("Selected:", actual_size)
+                print("✔ Selected:", actual_size)
 
             # ✅ SAVE VALUE
             final_value = container_map.get(actual_size, "")
@@ -135,7 +213,7 @@ for i in range(len(all_cont_size)):   # total 3 containers
         else:
             if checkbox.is_selected():
                 driver.execute_script("arguments[0].click();", label)
-                print("Unchecked:", actual_size)
+                print("✖ Unchecked:", actual_size)
 
     except Exception as e:
         print("Retrying due to:", e)
@@ -231,217 +309,471 @@ time.sleep(20)
 
 today = datetime.today().strftime('%d-%b-%Y')
 
+# =====================================
+# SHADOW ROOT
+# =====================================
+
 def get_root():
-    host = driver.find_element(By.CSS_SELECTOR, "mymsc-instantquote-app")
-    return driver.execute_script("return arguments[0].shadowRoot", host)
 
-def get_cards_and_buttons():
+    host = driver.find_element(
+        By.CSS_SELECTOR,
+        "mymsc-instantquote-app"
+    )
+
+    return driver.execute_script(
+        "return arguments[0].shadowRoot",
+        host
+    )
+
+
+# =====================================
+# GET ALL UPPER CARDS
+# =====================================
+
+def get_upper_cards():
+
     root = get_root()
-    cards = root.find_elements(By.CSS_SELECTOR, "div.carousel-card-container")
-    buttons = root.find_elements(By.CSS_SELECTOR, "button[data-test-id*='showDetailsIcon']")
-    return cards, buttons
 
-def format_date(date_text):
+    return root.find_elements(
+        By.CSS_SELECTOR,
+        "div.carousel-card-container"
+    )
+
+
+# =====================================
+# GET RATE CARDS
+# =====================================
+
+def get_rate_cards():
+
+    root = get_root()
+
+    return root.find_elements(
+        By.CSS_SELECTOR,
+        "div.rateCardBox"
+    )
+
+
+# =====================================
+# CLOSE PDF
+# =====================================
+
+def close_pdf():
+
     try:
-        parts = [p.strip() for p in date_text.split("\n") if p.strip()]
-        if len(parts) >= 2:
-            return f"{parts[0]}-{parts[1].capitalize()}-{datetime.now().year}"
-    except:
-        pass
-    return ""
 
-# =========================
-# LOOP
-# =========================
-cards, buttons = get_cards_and_buttons()
-print("Total cards:", len(cards))
+        root = get_root()
 
-for i in range(len(cards)):
-    try:
-        print(f"\n Processing Card {i}")
+        close_btn = root.find_element(
+            By.CSS_SELECTOR,
+            "button.myMSC-icon-close.close-btn"
+        )
 
-        cards, buttons = get_cards_and_buttons()
+        driver.execute_script(
+            "arguments[0].click();",
+            close_btn
+        )
 
-        if i >= len(cards):
-            break
+        print("PDF CLOSED")
 
-        card = cards[i]
-        driver.execute_script("arguments[0].click();", cards[i])
-
-        if not buttons:
-            print("No visible button")
-            continue
-
-        # DATE
-        dates = card.find_elements(By.CSS_SELECTOR, "div.shipping-window-date")
-
-        start_date = format_date(dates[0].text) if len(dates) > 0 else ""
-        end_date = format_date(dates[1].text) if len(dates) > 1 else ""
-
-        print(start_date, "|", end_date)
-
-        # SCROLL
-        driver.execute_script("arguments[0].scrollIntoView({block:'center'});", card)
-        time.sleep(1)
-
-        # 🔥 INNER LOOP ADDED (ONLY CHANGE)
-        for j in range(len(buttons)):
-            try:
-                btn = buttons[j]
-
-                # CLICK
-                driver.execute_script("""
-                let btn = arguments[0];
-                btn.scrollIntoView({block:'center'});
-                btn.focus();
-                btn.dispatchEvent(new MouseEvent('click', {bubbles:true}));
-                """, btn)
-
-                print("Clicked")
-                time.sleep(10)
-
-                # WAIT MODAL
-                wait.until(lambda d: d.execute_script("""
-                    let host = document.querySelector('mymsc-instantquote-app');
-                    return host.shadowRoot.querySelector('[data-test-id="BreakdownModal"]') !== null;
-                """))
-
-                # =========================
-                # 🔥 FINAL FIXED DATA EXTRACT
-                # =========================
-                records = driver.execute_script("""
-                let result = {
-                    freight_charge: 0,
-                    freight_surcharges: 0,
-                    export_surcharges: 0,
-                    import_surcharges: 0
-                };
-
-                let root = document.querySelector('mymsc-instantquote-app').shadowRoot;
-                let modal = root.querySelector('[data-test-id="BreakdownModal"]');
-                let rows = modal.querySelectorAll('.standard-charges-row');
-
-                let section = "";
-
-                let import_inr = 0;
-                let import_usd = 0;
-
-                rows.forEach(row => {
-
-                    let header = row.querySelector("strong");
-                    if(header){
-                        let text = header.innerText.trim();
-
-                        if(text.includes("Freight Charge")) section = "freight_charge";
-                        else if(text.includes("Freight Surcharges")) section = "freight_surcharges";
-                        else if(text.includes("Export Surcharges")) section = "export_surcharges";
-                        else if(text.includes("Import Surcharges")) section = "import_surcharges";
-                    }
-
-                    let amounts = row.querySelectorAll(".amount-field strong");
-
-                    amounts.forEach(el => {
-
-                        let txt = el.innerText.trim();
-                        let num = txt.replace(/[^0-9.]/g, "");
-                        if(!num) return;
-
-                        let val = parseFloat(num);
-
-                        if(section === "import_surcharges"){
-                            if(txt.includes("INR")) import_inr += val;
-                            else import_usd += val;
-                        }
-                        else if(section === "freight_charge"){
-                            result.freight_charge += val;
-                        }
-                        else if(section === "freight_surcharges"){
-                            result.freight_surcharges += val;
-                        }
-                        else if(section === "export_surcharges"){
-                            result.export_surcharges += val;
-                        }
-
-                    });
-
-                });
-
-                let import_final = (import_inr / 94) + import_usd;
-
-                result.import_surcharges = parseFloat(import_final.toFixed(1));
-
-                return result;
-                """)
-
-                total = round(sum(records.values()), 1)
-
-                records["freight_charge"] = round(records["freight_charge"], 1)
-                records["freight_surcharges"] = round(records["freight_surcharges"], 1)
-                records["export_surcharges"] = round(records["export_surcharges"], 1)
-                records["import_surcharges"] = round(records["import_surcharges"], 1)
-
-                print("Freight:", records["freight_charge"])
-                print("Surcharges:", records["freight_surcharges"])
-                print("Export:", records["export_surcharges"])
-                print("Import:", records["import_surcharges"])
-                print("TOTAL:", total)
-
-                data.append([
-                    today,
-                    "MSC",
-                    origin_port_name,
-                    destination_port_name,
-                    cont_size,
-                    20000,
-                    start_date,
-                    end_date,
-                    records["freight_charge"],
-                    records["freight_surcharges"],
-                    records["export_surcharges"],
-                    records["import_surcharges"],
-                    total,
-                    ""
-                ])
-
-                # CLOSE MODAL
-                driver.execute_script("""
-                let root = document.querySelector('mymsc-instantquote-app').shadowRoot;
-                let modal = root.querySelector('[data-test-id="BreakdownModal"]');
-
-                if(modal){
-                    let btn = modal.querySelector('button.close-btn');
-                    if(btn){
-                        btn.dispatchEvent(new MouseEvent('click', {bubbles:true}));
-                    }
-                }
-                """)
-
-                time.sleep(10)
-
-            except Exception as e:
-                print("Button Error:", str(e))
+        time.sleep(2)
 
     except Exception as e:
-        print("Error:", str(e))
-        
-if len(cards) == 0:
-    data.append([
-        today,
-        "MSC",
-        origin_port_name,
-        destination_port_name,
-        cont_size,
-        20000,
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "No Data"
-    ])
-    print("No cards found")        
+
+        print("PDF CLOSE ERROR:", e)
+
+
+# =====================================
+# CLICK UPPER CARD PROPERLY
+# =====================================
+
+def click_upper_card(index):
+
+    upper_cards = get_upper_cards()
+
+    card = upper_cards[index]
+
+    # scroll into view
+    driver.execute_script("""
+        arguments[0].scrollIntoView({
+            behavior:'smooth',
+            block:'center',
+            inline:'center'
+        });
+    """, card)
+
+    time.sleep(2)
+
+    # actual clickable card
+    clickable = card.find_element(
+        By.CSS_SELECTOR,
+        ".search-result-carousel-card"
+    )
+
+    # remove active class info
+    print(
+        "ACTIVE BEFORE:",
+        "selected" in clickable.get_attribute("class")
+    )
+
+    # click using JS
+    driver.execute_script(
+        "arguments[0].click();",
+        clickable
+    )
+
+    time.sleep(4)
+
+    # verify active changed
+    upper_cards = get_upper_cards()
+
+    active_card = upper_cards[index].find_element(
+        By.CSS_SELECTOR,
+        ".search-result-carousel-card"
+    )
+
+    is_selected = "selected" in active_card.get_attribute("class")
+
+    print(f"UPPER CARD {index+1} CLICKED")
+    print("ACTIVE AFTER:", is_selected)
+
+    return is_selected
+
+
+# =====================================
+# MAIN PROCESS
+# =====================================
+
+total_upper_cards = len(get_upper_cards())
+
+print("TOTAL UPPER CARDS:", total_upper_cards)
+
+
+# =====================================
+# UPPER LOOP
+# =====================================
+
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import *
+from datetime import datetime
+import time
+
+
+# =====================================
+# MAIN LOOP
+# =====================================
+
+for i in range(total_upper_cards):
+
+    print("\n==============================")
+    print(f"UPPER CARD {i+1}")
+    print("==============================")
+
+    try:
+
+        # =====================================
+        # CLICK CURRENT UPPER CARD
+        # =====================================
+
+        active = click_upper_card(i)
+
+        if not active:
+            print("CARD NOT ACTIVATED")
+            continue
+
+        time.sleep(3)
+
+        # =====================================
+        # GET RATE CARDS
+        # =====================================
+
+        total_rate_cards = len(get_rate_cards())
+
+        print("RATE CARDS:", total_rate_cards)
+
+        # =====================================
+        # RATE CARD LOOP
+        # =====================================
+
+        for r in range(total_rate_cards):
+
+            print(f"\nRATE CARD {r+1}")
+
+            try:
+
+                # fresh rate cards
+                rate_cards = get_rate_cards()
+
+                rate_card = rate_cards[r]
+
+                # =====================================
+                # SHIPPING WINDOW
+                # =====================================
+
+                shipping_window = rate_card.find_element(
+                    By.CSS_SELECTOR,
+                    "[data-test-id^='ShippingWindow_'] b"
+                ).text
+
+                start_raw, end_raw = shipping_window.split(" - ")
+
+                start_date = datetime.strptime(
+                    start_raw.strip(),
+                    "%d %b %Y"
+                ).strftime("%d-%b-%Y")
+
+                end_date = datetime.strptime(
+                    end_raw.strip(),
+                    "%d %b %Y"
+                ).strftime("%d-%b-%Y")
+
+                print("START DATE:", start_date)
+                print("END DATE:", end_date)
+
+                # =====================================
+                # SHOW DETAILS BUTTONS
+                # =====================================
+
+                detail_buttons = rate_card.find_elements(
+                    By.CSS_SELECTOR,
+                    "[data-test-id*='showDetailsIcon']"
+                )
+
+                print("DETAIL BUTTONS:", len(detail_buttons))
+
+                # =====================================
+                # DETAIL LOOP
+                # =====================================
+
+                for d in range(len(detail_buttons)):
+
+                    try:
+
+                        print(f"Opening Detail {d+1}")
+
+                        # fresh elements again
+                        rate_cards = get_rate_cards()
+
+                        rate_card = rate_cards[r]
+
+                        detail_buttons = rate_card.find_elements(
+                            By.CSS_SELECTOR,
+                            "[data-test-id*='showDetailsIcon']"
+                        )
+
+                        detail_btn = detail_buttons[d]
+
+                        # scroll
+                        driver.execute_script("""
+                            arguments[0].scrollIntoView({
+                                behavior:'smooth',
+                                block:'center'
+                            });
+                        """, detail_btn)
+
+                        time.sleep(1)
+
+                        # click detail
+                        driver.execute_script(
+                            "arguments[0].click();",
+                            detail_btn
+                        )
+
+                        print(f"DETAIL {d+1} OPENED")
+
+                        time.sleep(4)
+
+                        # =====================================
+                        # EXTRACT DATA
+                        # =====================================
+
+                        records = driver.execute_script("""
+
+                        let result = {
+                            freight_charge: 0,
+                            freight_surcharges: 0,
+                            export_surcharges: 0,
+                            import_surcharges: 0
+                        };
+
+                        let root = document.querySelector(
+                            'mymsc-instantquote-app'
+                        ).shadowRoot;
+
+                        let modal = root.querySelector(
+                            '[data-test-id="BreakdownModal"]'
+                        );
+
+                        let rows = modal.querySelectorAll(
+                            '.standard-charges-row'
+                        );
+
+                        let section = "";
+
+                        let import_inr = 0;
+                        let import_usd = 0;
+
+                        rows.forEach(row => {
+
+                            let header = row.querySelector("strong");
+
+                            if(header){
+
+                                let text = header.innerText.trim();
+
+                                if(text.includes("Freight Charge"))
+                                    section = "freight_charge";
+
+                                else if(text.includes("Freight Surcharges"))
+                                    section = "freight_surcharges";
+
+                                else if(text.includes("Export Surcharges"))
+                                    section = "export_surcharges";
+
+                                else if(text.includes("Import Surcharges"))
+                                    section = "import_surcharges";
+                            }
+
+                            let amounts = row.querySelectorAll(
+                                ".amount-field strong"
+                            );
+
+                            amounts.forEach(el => {
+
+                                let txt = el.innerText.trim();
+
+                                let num = txt.replace(
+                                    /[^0-9.]/g,
+                                    ""
+                                );
+
+                                if(!num) return;
+
+                                let val = parseFloat(num);
+
+                                if(section === "import_surcharges"){
+
+                                    if(txt.includes("INR"))
+                                        import_inr += val;
+
+                                    else
+                                        import_usd += val;
+                                }
+
+                                else if(section === "freight_charge"){
+                                    result.freight_charge += val;
+                                }
+
+                                else if(section === "freight_surcharges"){
+                                    result.freight_surcharges += val;
+                                }
+
+                                else if(section === "export_surcharges"){
+                                    result.export_surcharges += val;
+                                }
+
+                            });
+
+                        });
+
+                        let import_final =
+                            (import_inr / 96) + import_usd;
+
+                        result.import_surcharges =
+                            parseFloat(import_final.toFixed(1));
+
+                        return result;
+
+                        """)
+
+                        # =====================================
+                        # TOTAL
+                        # =====================================
+                        total = round(sum(records.values()), 1)
+
+                        records["freight_charge"] = round(
+                            records["freight_charge"], 1
+                        )
+
+                        records["freight_surcharges"] = round(
+                            records["freight_surcharges"], 1
+                        )
+
+                        records["export_surcharges"] = round(
+                            records["export_surcharges"], 1
+                        )
+
+                        records["import_surcharges"] = round(
+                            records["import_surcharges"], 1
+                        )
+
+                        print("Freight:", records["freight_charge"])
+                        print("Surcharges:", records["freight_surcharges"])
+                        print("Export:", records["export_surcharges"])
+                        print("Import:", records["import_surcharges"])
+                        print("TOTAL:", total)
+
+                        # =====================================
+                        # SAVE DATA
+                        # =====================================
+                        data.append([
+                            today,
+                            "MSC",
+                            origin_port_name,
+                            destination_port_name,
+                            cont_size,
+                            20000,
+                            start_date,
+                            end_date,
+                            records["freight_charge"],
+                            records["freight_surcharges"],
+                            records["export_surcharges"],
+                            records["import_surcharges"],
+                            total,
+                            ""
+                        ])
+
+                        # =====================================
+                        # CLOSE PDF
+                        # =====================================
+                        close_pdf()
+
+                        time.sleep(2)
+
+                    except Exception as e:
+
+                        print(f"DETAIL {d+1} ERROR:", e)
+
+                        try:
+                            close_pdf()
+                        except:
+                            pass
+
+                        continue
+
+            except Exception as e:
+                print("RATE CARD ERROR:", e)
+
+                try:
+                    close_pdf()
+                except:
+                    pass
+
+                continue
+
+    except Exception as e:
+        print("UPPER CARD ERROR:", e)
+        continue
+
+
+# =====================================
+# NO DATA
+# =====================================
+if total_upper_cards == 0:
+    data.append([today, "MSC", origin_port_name, destination_port_name, cont_size, 20000, "", "", "", "", "", "", "", "No Data"])
+    print("No cards found")
+
+print("ALL COMPLETED")  
         
 new_df = pd.DataFrame(data, columns=columns)
 try:
@@ -451,8 +783,6 @@ except:
     final_df = new_df
 final_df.to_excel(file_path, index=False)
 
-print("Data saved successfully")
-try:
-    driver.quit()
-except:
-    pass
+print("Data saved successfully")    
+
+driver.quit()

@@ -192,7 +192,7 @@ origin_port_name = sys.argv[2]
 destination_port_code = sys.argv[3]
 destination_port_name = sys.argv[4]
 container_type = sys.argv[5]
-
+print("Received arguments:", origin_port_code, origin_port_name, destination_port_code, destination_port_name, container_type)
 container_map = {
     "20' General Purpose": "1 × 20' ST",
     "40' General Purpose": "1 × 40' ST",
