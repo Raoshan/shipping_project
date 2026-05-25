@@ -47,10 +47,28 @@ print("Final Container Value:", container_map.get(container_size, ""))
 cont_size=container_map.get(container_size, "")
 
 # ========= CHROME SETUP =========
+# ========= CHROME SETUP =========
+
 options = uc.ChromeOptions()
+
+# Render Linux Chromium path
+options.binary_location = "/usr/bin/chromium"
+
+# Required for Render
+options.add_argument("--headless=new")
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--disable-gpu")
+
+# Optional
 options.add_argument("--start-maximized")
 options.add_argument("--disable-blink-features=AutomationControlled")
-driver = uc.Chrome(options=options, version_main=148, use_subprocess=True)
+
+driver = uc.Chrome(
+    options=options,
+    use_subprocess=True
+)
+
 wait = WebDriverWait(driver, 20)
 
 # ================= OPEN WEBSITE =================
